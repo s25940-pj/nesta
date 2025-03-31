@@ -1,5 +1,6 @@
 package com.example.nesta.controller.apartment;
 
+import com.example.nesta.dto.apartment.ApartmentFilter;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.service.apartment.ApartmentService;
 import org.springframework.http.ResponseEntity;
@@ -42,5 +43,11 @@ public class ApartmentController {
     public ResponseEntity<Void> deleteApartment(@PathVariable Long id) {
         apartmentService.deleteApartment(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Apartment>> searchApartments(@ModelAttribute ApartmentFilter filter) {
+        List<Apartment> results = apartmentService.searchApartments(filter);
+        return ResponseEntity.ok(results);
     }
 }

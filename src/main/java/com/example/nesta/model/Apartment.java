@@ -19,10 +19,8 @@ public class Apartment {
     private int area;
     private int numberOfRooms;
     private int numberOfBathrooms;
-    private String floor;
-    private String propertyType;
+    private int floor;
     private boolean furnished;
-    private String heatingType;
     private boolean hasBalcony;
 
     @Enumerated(EnumType.STRING)
