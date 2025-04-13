@@ -1,6 +1,7 @@
 package com.example.nesta.service.apartment;
 
 import com.example.nesta.dto.apartment.ApartmentFilter;
+import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.repository.apartment.ApartmentRepository;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,6 @@ public class ApartmentService {
         return apartmentRepository.findById(id);
     }
 
-    
     public List<Apartment> getAllApartments() {
         return apartmentRepository.findAll();
     }
@@ -32,18 +32,20 @@ public class ApartmentService {
     public Apartment updateApartment(Long id, Apartment updatedApartment) {
         return apartmentRepository.findById(id)
                 .map(existing -> {
-                    updatedApartment.setId(id); // zapewniamy, że ID się nie zmienia
+                    updatedApartment.setId(id);
                     return apartmentRepository.save(updatedApartment);
                 })
-                .orElseThrow(() -> new RuntimeException("Apartment not found with id: " + id));
+                .orElseThrow(() -> new ApartmentNotFoundException(id));
     }
 
     public void deleteApartment(Long id) {
+        if (!apartmentRepository.existsById(id)) {
+            throw new ApartmentNotFoundException(id);
+        }
         apartmentRepository.deleteById(id);
     }
 
     public List<Apartment> searchApartments(ApartmentFilter filter) {
         return apartmentRepository.searchApartments(filter);
     }
-
 }

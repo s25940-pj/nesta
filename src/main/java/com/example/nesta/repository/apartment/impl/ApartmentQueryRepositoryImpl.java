@@ -3,7 +3,6 @@ package com.example.nesta.repository.apartment.impl;
 import com.example.nesta.dto.apartment.ApartmentFilter;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.model.QApartment;
-import com.example.nesta.model.enums.ParkingType;
 import com.example.nesta.repository.apartment.ApartmentQueryRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
