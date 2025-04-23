@@ -1,6 +1,6 @@
 package com.example.nesta.repository.apartment;
 
-import com.example.nesta.dto.apartment.ApartmentFilter;
+import com.example.nesta.dto.ApartmentFilter;
 import com.example.nesta.model.Apartment;
 import org.springframework.stereotype.Repository;
 

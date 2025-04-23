@@ -1,6 +1,6 @@
 package com.example.nesta.controller.apartment;
 
-import com.example.nesta.dto.apartment.ApartmentFilter;
+import com.example.nesta.dto.ApartmentFilter;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.service.apartment.ApartmentService;
 import jakarta.validation.Valid;

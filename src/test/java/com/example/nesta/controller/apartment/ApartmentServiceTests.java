@@ -1,7 +1,7 @@
 package com.example.nesta.controller.apartment;
 
-import com.example.nesta.dto.apartment.ApartmentFilter;
-import com.example.nesta.exception.apartment.ApartmentNotFoundException;
+import com.example.nesta.dto.ApartmentFilter;
+import com.example.nesta.exception.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.repository.apartment.ApartmentRepository;
 import com.example.nesta.service.apartment.ApartmentService;

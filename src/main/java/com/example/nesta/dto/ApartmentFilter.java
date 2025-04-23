@@ -1,4 +1,4 @@
-package com.example.nesta.dto.apartment;
+package com.example.nesta.dto;
 
 import com.example.nesta.model.enums.ParkingType;
 import lombok.Data;
