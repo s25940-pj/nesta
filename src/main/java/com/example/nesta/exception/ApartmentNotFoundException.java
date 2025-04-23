@@ -1,7 +1,7 @@
-package com.example.nesta.exception.apartment;
+package com.example.nesta.exception;
 
 public class ApartmentNotFoundException extends RuntimeException {
   public ApartmentNotFoundException(Long id) {
-    super("Apartment not found with id: " + id);
+    super("Apartment with id " + id + " not found");
   }
 }

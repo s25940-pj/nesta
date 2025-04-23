@@ -1,8 +1,5 @@
 package com.example.nesta.exception;
 
-import com.example.nesta.exception.apartment.ApartmentNotFoundException;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -69,5 +66,33 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(body);
+    }
+
+    /**
+     * Handles custom validation errors for invalid query parameters.
+     * <p>
+     * This method is triggered when an {@link InvalidQueryParamException} is thrown,
+     * which typically occurs when a client provides a query parameter
+     * that is not recognized or not allowed by the API.
+     * <p>
+     * Example use case:
+     * <ul>
+     *   <li>GET /api/rental-offers/search?unknownParam=value</li>
+     *   <li>Client sends a query parameter not defined in the filter class</li>
+     * </ul>
+     *
+     * @param ex the custom exception indicating an invalid query parameter
+     * @return a structured 400 Bad Request response containing error details
+     */
+    @ExceptionHandler(InvalidQueryParamException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidQueryParamException(InvalidQueryParamException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 400,
+                        "error", "Bad Request",
+                        "message", ex.getMessage()
+                )
+        );
     }
 }
