@@ -1,5 +1,8 @@
 package com.example.nesta.exception;
 
+import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressException;
+import com.example.nesta.exception.apartment.ApartmentNotFoundException;
+import com.example.nesta.exception.common.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,8 +14,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ApartmentNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleApartmentNotFound(ApartmentNotFoundException ex) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ApartmentNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 Map.of(
                         "timestamp", LocalDateTime.now(),
@@ -90,6 +93,18 @@ public class GlobalExceptionHandler {
                 Map.of(
                         "timestamp", LocalDateTime.now(),
                         "status", 400,
+                        "error", "Bad Request",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(ApartmentAlreadyExistsForAddressException.class)
+    public ResponseEntity<Map<String, Object>> handleApartmentAlreadyExistsForAddressException(ApartmentAlreadyExistsForAddressException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 409,
                         "error", "Bad Request",
                         "message", ex.getMessage()
                 )

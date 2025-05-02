@@ -1,7 +1,7 @@
 package com.example.nesta.service.rentaloffer;
 
 import com.example.nesta.dto.RentalOfferFilter;
-import com.example.nesta.exception.RentalOfferNotFoundException;
+import com.example.nesta.exception.rentaloffer.RentalOfferNotFoundException;
 import com.example.nesta.model.RentalOffer;
 import com.example.nesta.repository.rentaloffer.RentalOfferRepository;
 import org.springframework.stereotype.Service;
