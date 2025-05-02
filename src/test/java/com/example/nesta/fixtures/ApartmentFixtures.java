@@ -1,19 +1,10 @@
 package com.example.nesta.fixtures;
 
-import com.example.nesta.model.Address;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.model.enums.ParkingType;
 
 public class ApartmentFixtures {
     public static Apartment validApartment() {
-        Address address = new Address();
-        address.setStreetName("Main");
-        address.setBuildingNumber("12");
-        address.setApartmentNumber("5A");
-        address.setPostalCode("10001");
-        address.setCity("Springville");
-        address.setCountry("Poland");
-
         Apartment apartment = new Apartment();
         apartment.setNumberOfRooms(2);
         apartment.setNumberOfBathrooms(1);
@@ -25,7 +16,12 @@ public class ApartmentFixtures {
         apartment.setDisabledAccessible(false);
         apartment.setHasStorageRoomInBasement(false);
         apartment.setArea(40);
-        apartment.setAddress(address);
+        apartment.setStreetName("Main");
+        apartment.setBuildingNumber("12");
+        apartment.setApartmentNumber("5A");
+        apartment.setPostalCode("10001");
+        apartment.setCity("Springville");
+        apartment.setCountry("Poland");
 
         return apartment;
     }

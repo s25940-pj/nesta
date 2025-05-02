@@ -47,11 +47,16 @@ public class Apartment {
     @NotNull
     private boolean hasStorageRoomInBasement;
 
-    /**
-     * Address entity containing location details.
-     */
     @NotNull
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "address_id", referencedColumnName = "id")
-    private Address address;
+    private String streetName;
+    @NotNull
+    private String buildingNumber;
+    @NotNull
+    private String apartmentNumber;
+    @NotNull
+    private String city;
+    @NotNull
+    private String postalCode;
+    @NotNull
+    private String country;
 }

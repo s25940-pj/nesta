@@ -1,7 +1,8 @@
 package com.example.nesta.service.apartment;
 
 import com.example.nesta.dto.ApartmentFilter;
-import com.example.nesta.exception.ApartmentNotFoundException;
+import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressException;
+import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.repository.apartment.ApartmentRepository;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,22 @@ public class ApartmentService {
     }
 
     public Apartment createApartment(Apartment apartment) {
+        if (apartmentAlreadyExistsForAddress(apartment)) {
+            throw new ApartmentAlreadyExistsForAddressException("An apartment already exists for the given address.");
+        }
+
         return apartmentRepository.save(apartment);
+    }
+
+    private boolean apartmentAlreadyExistsForAddress(Apartment apartment) {
+        return apartmentRepository.findByStreetNameAndBuildingNumberAndApartmentNumberAndCityAndPostalCodeAndCountry(
+                apartment.getStreetName(),
+                apartment.getBuildingNumber(),
+                apartment.getApartmentNumber(),
+                apartment.getCity(),
+                apartment.getPostalCode(),
+                apartment.getCountry()
+        ).isEmpty();
     }
 
     public Optional<Apartment> getApartmentById(Long id) {
