@@ -3,6 +3,7 @@ package com.example.nesta.exception;
 import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressException;
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
+import com.example.nesta.exception.user.UserCreationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -105,7 +106,19 @@ public class GlobalExceptionHandler {
                 Map.of(
                         "timestamp", LocalDateTime.now(),
                         "status", 409,
-                        "error", "Bad Request",
+                        "error", "Conflict",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(UserCreationException.class)
+    public ResponseEntity<Map<String, Object>> handleUserCreationException(UserCreationException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 500,
+                        "error", "Internal Server Error",
                         "message", ex.getMessage()
                 )
         );
