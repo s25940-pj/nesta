@@ -5,6 +5,7 @@ import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressExc
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.repository.apartment.ApartmentRepository;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,10 +19,12 @@ public class ApartmentService {
         this.apartmentRepository = apartmentRepository;
     }
 
-    public Apartment createApartment(Apartment apartment) {
+    public Apartment createApartment(Apartment apartment, Jwt jwt) {
         if (apartmentAlreadyExistsForAddress(apartment)) {
             throw new ApartmentAlreadyExistsForAddressException("An apartment already exists for the given address.");
         }
+        String userId = jwt.getSubject();
+        apartment.setUserId(userId);
 
         return apartmentRepository.save(apartment);
     }
@@ -34,15 +37,17 @@ public class ApartmentService {
                 apartment.getCity(),
                 apartment.getPostalCode(),
                 apartment.getCountry()
-        ).isEmpty();
+        ).isPresent();
     }
 
-    public Optional<Apartment> getApartmentById(Long id) {
-        return apartmentRepository.findById(id);
+    public Optional<Apartment> getApartmentById(Long apartmentId) {
+        return apartmentRepository.findById(apartmentId);
     }
 
-    public List<Apartment> getAllApartments() {
-        return apartmentRepository.findAll();
+    public List<Apartment> getAllApartments(Jwt jwt) {
+        String userId = jwt.getSubject();
+
+        return apartmentRepository.getAllApartmentsByUserId(userId);
     }
     
     public Apartment updateApartment(Long id, Apartment updatedApartment) {
