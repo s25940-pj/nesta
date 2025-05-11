@@ -4,7 +4,6 @@ import com.example.nesta.model.enums.EmploymentStatus;
 import com.example.nesta.model.enums.FurnishingStatus;
 import com.example.nesta.model.enums.PetPolicy;
 import com.example.nesta.model.enums.SmokingPolicy;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -22,6 +21,9 @@ public class RentalOffer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
     /**
      * The apartment associated with this rental offer.

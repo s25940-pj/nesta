@@ -1,9 +1,9 @@
-package com.example.nesta.dto;
+package com.example.nesta.dto.user;
 
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class UserRegisterRequest {
     private String username;
     private String email;
     private String password;

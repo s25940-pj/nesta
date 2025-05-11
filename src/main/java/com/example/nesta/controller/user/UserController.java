@@ -1,6 +1,6 @@
 package com.example.nesta.controller.user;
 
-import com.example.nesta.dto.RegisterRequest;
+import com.example.nesta.dto.user.UserRegisterRequest;
 import com.example.nesta.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> registerUser(@RequestBody UserRegisterRequest request) {
         userService.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("User successfully created.");
     }

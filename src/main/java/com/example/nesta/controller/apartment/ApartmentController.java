@@ -5,6 +5,9 @@ import com.example.nesta.model.Apartment;
 import com.example.nesta.service.apartment.ApartmentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Field;
@@ -23,11 +26,13 @@ public class ApartmentController {
         this.apartmentService = apartmentService;
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PostMapping
-    public ResponseEntity<Apartment> createApartment(@RequestBody @Valid Apartment apartment) {
-        return ResponseEntity.ok(apartmentService.createApartment(apartment));
+    public ResponseEntity<Apartment> createApartment(@RequestBody @Valid Apartment apartment, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(apartmentService.createApartment(apartment, jwt));
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/{id}")
     public ResponseEntity<Apartment> getApartmentById(@PathVariable Long id) {
         return apartmentService.getApartmentById(id)
@@ -35,16 +40,19 @@ public class ApartmentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping
-    public ResponseEntity<List<Apartment>> getAllApartments() {
-        return ResponseEntity.ok(apartmentService.getAllApartments());
+    public ResponseEntity<List<Apartment>> getAllApartments(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(apartmentService.getAllApartments(jwt));
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PutMapping("/{id}")
     public ResponseEntity<Apartment> updateApartment(@PathVariable Long id, @RequestBody @Valid Apartment apartment) {
         return ResponseEntity.ok(apartmentService.updateApartment(id, apartment));
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteApartment(@PathVariable Long id) {
         apartmentService.deleteApartment(id);
