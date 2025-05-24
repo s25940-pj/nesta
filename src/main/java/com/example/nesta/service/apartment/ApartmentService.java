@@ -24,7 +24,7 @@ public class ApartmentService {
             throw new ApartmentAlreadyExistsForAddressException("An apartment already exists for the given address.");
         }
         String userId = jwt.getSubject();
-        apartment.setUserId(userId);
+        apartment.setLandlordId(userId);
 
         return apartmentRepository.save(apartment);
     }
@@ -44,10 +44,10 @@ public class ApartmentService {
         return apartmentRepository.findById(apartmentId);
     }
 
-    public List<Apartment> getAllApartments(Jwt jwt) {
-        String userId = jwt.getSubject();
+    public List<Apartment> getAllApartmentsByLandlordId(Jwt jwt) {
+        String landlordId = jwt.getSubject();
 
-        return apartmentRepository.getAllApartmentsByUserId(userId);
+        return apartmentRepository.getAllApartmentsByLandlordId(landlordId);
     }
     
     public Apartment updateApartment(Long id, Apartment updatedApartment) {

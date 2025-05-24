@@ -18,5 +18,5 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long>, Apa
             String country
     );
 
-    List<Apartment> getAllApartmentsByUserId(String userId);
+    List<Apartment> getAllApartmentsByLandlordId(String userId);
 }
