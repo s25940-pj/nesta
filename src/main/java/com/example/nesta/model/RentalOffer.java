@@ -10,6 +10,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -22,8 +23,8 @@ public class RentalOffer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Column(name = "landlord_id", nullable = false)
+    private String landlordId;
 
     /**
      * The apartment associated with this rental offer.
@@ -31,6 +32,9 @@ public class RentalOffer {
     @OneToOne
     @JoinColumn(name = "apartment_id", nullable = false)
     private Apartment apartment;
+
+    @OneToMany(mappedBy = "rental_offer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RentalInvoice> rentalInvoices;
 
     /**
      * Monthly rent amount (excluding additional utilities).

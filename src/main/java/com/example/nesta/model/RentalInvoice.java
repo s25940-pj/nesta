@@ -16,6 +16,10 @@ public class RentalInvoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "rental_offer_id")
+    private RentalOffer rentalOffer;
+
     private double amount;
 
     @Temporal(TemporalType.DATE)

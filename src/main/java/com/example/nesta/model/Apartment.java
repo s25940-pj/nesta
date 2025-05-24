@@ -18,6 +18,9 @@ public class Apartment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(mappedBy = "apartment")
+    private RentalOffer rentalOffer;
+
     @Column(name = "user_id", nullable = false)
     private String userId;
 
