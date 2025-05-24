@@ -1,9 +1,13 @@
 package com.example.nesta.controller.user;
 
+import com.example.nesta.dto.user.AssignRoleRequest;
 import com.example.nesta.dto.user.UserRegisterRequest;
 import com.example.nesta.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,6 +26,16 @@ public class UserController {
         userService.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("User successfully created.");
     }
+
+    @PostMapping("/assign-role")
+    @PreAuthorize("isAuthenticated")
+    public ResponseEntity<String> assignRole(@RequestBody AssignRoleRequest request,
+                                             @AuthenticationPrincipal Jwt jwt) {
+        userService.assignRoleToUser(request.getRole(), jwt);
+        return ResponseEntity.ok("Role assigned successfully.");
+    }
+
+
 
     @GetMapping("/login")
     public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password) {
