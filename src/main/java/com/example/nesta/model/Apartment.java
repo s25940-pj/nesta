@@ -18,8 +18,11 @@ public class Apartment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @OneToOne(mappedBy = "apartment")
+    private RentalOffer rentalOffer;
+
+    @Column(name = "landlord_id", nullable = false)
+    private String landlordId;
 
     @NotNull
     private Integer area;
@@ -29,25 +32,22 @@ public class Apartment {
     private Integer numberOfBathrooms;
     @NotNull
     private Integer floor;
-    @NotNull
+
     private boolean furnished;
-    @NotNull
+
     private boolean hasBalcony;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     private ParkingType parkingType;
 
-    @NotNull
     private boolean hasElevator;
 
     /**
      * Whether the apartment is accessible for people with disabilities.
      */
-    @NotNull
     private boolean isDisabledAccessible;
 
-    @NotNull
     private boolean hasStorageRoomInBasement;
 
     @NotNull

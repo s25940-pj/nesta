@@ -10,6 +10,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -22,8 +23,8 @@ public class RentalOffer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Column(name = "landlord_id", nullable = false)
+    private String landlordId;
 
     /**
      * The apartment associated with this rental offer.
@@ -31,6 +32,9 @@ public class RentalOffer {
     @OneToOne
     @JoinColumn(name = "apartment_id", nullable = false)
     private Apartment apartment;
+
+    @OneToMany(mappedBy = "rental_offer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RentalInvoice> rentalInvoices;
 
     /**
      * Monthly rent amount (excluding additional utilities).
@@ -53,25 +57,21 @@ public class RentalOffer {
      * Whether utilities are included in the rent.
      * true → included in monthlyRent, false → paid separately.
      */
-    @NotNull
     private boolean utilitiesIncluded;
 
     /**
      * The date from which the apartment is available for rent.
      */
-    @NotNull
     private LocalDate availableFrom;
 
     /**
      * The date until which the apartment is available for rent.
      */
-    @NotNull
     private LocalDate availableUntil;
 
     /**
      * Indicates if short-term rental is possible.
      */
-    @NotNull
     private boolean shortTermRental;
 
     /**
@@ -105,6 +105,5 @@ public class RentalOffer {
     /**
      * Indicates whether the apartment is accessible for people with disabilities.
      */
-    @NotNull
     private boolean accessibleForDisabled;
 }
