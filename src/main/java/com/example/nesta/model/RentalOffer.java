@@ -57,25 +57,21 @@ public class RentalOffer {
      * Whether utilities are included in the rent.
      * true → included in monthlyRent, false → paid separately.
      */
-    @NotNull
     private boolean utilitiesIncluded;
 
     /**
      * The date from which the apartment is available for rent.
      */
-    @NotNull
     private LocalDate availableFrom;
 
     /**
      * The date until which the apartment is available for rent.
      */
-    @NotNull
     private LocalDate availableUntil;
 
     /**
      * Indicates if short-term rental is possible.
      */
-    @NotNull
     private boolean shortTermRental;
 
     /**
@@ -109,6 +105,5 @@ public class RentalOffer {
     /**
      * Indicates whether the apartment is accessible for people with disabilities.
      */
-    @NotNull
     private boolean accessibleForDisabled;
 }
