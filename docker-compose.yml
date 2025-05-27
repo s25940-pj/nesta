@@ -38,7 +38,8 @@ services:
       - keycloak
     ports:
       - "8081:8082"
-    environment: {}
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
 
 volumes:
   pg_data:
