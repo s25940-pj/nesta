@@ -30,9 +30,6 @@ public class UserController {
     @GetMapping("/login")
     public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password) {
         RestTemplate restTemplate = new RestTemplate();
-
-//        String tokenUrl = "http://keycloak:8080/realms/nesta-realm/protocol/openid-connect/token";
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
