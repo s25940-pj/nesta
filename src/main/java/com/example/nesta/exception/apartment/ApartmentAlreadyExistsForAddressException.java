@@ -1,6 +1,8 @@
 package com.example.nesta.exception.apartment;
 
-public class ApartmentAlreadyExistsForAddressException extends RuntimeException {
+import com.example.nesta.exception.common.ResourceAlreadyExistsException;
+
+public class ApartmentAlreadyExistsForAddressException extends ResourceAlreadyExistsException {
     public ApartmentAlreadyExistsForAddressException(String message) {
         super(message);
     }

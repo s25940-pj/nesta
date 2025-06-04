@@ -8,6 +8,8 @@ import com.example.nesta.service.rentaloffer.RentalOfferService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Field;
@@ -32,8 +34,8 @@ public class RentalOfferController extends AbstractSearchController {
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PostMapping
-    public ResponseEntity<RentalOffer> createRentalOffer(@RequestBody @Valid RentalOffer rentalOffer) {
-        return ResponseEntity.ok(rentalOfferService.createRentalOffer(rentalOffer));
+    public ResponseEntity<RentalOffer> createRentalOffer(@RequestBody @Valid RentalOffer rentalOffer, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(rentalOfferService.createRentalOffer(rentalOffer, jwt));
     }
 
     @GetMapping("/{id}")
