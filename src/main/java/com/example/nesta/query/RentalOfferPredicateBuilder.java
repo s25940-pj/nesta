@@ -10,6 +10,7 @@ public class RentalOfferPredicateBuilder {
         if (filter == null) return new BooleanExpression[]{};
 
         return new BooleanExpression[]{
+                filter.getLandlordId() != null ? rentalOffer.landlordId.eq(filter.getLandlordId()) : null,
                 filter.getMonthlyRent() != null ? rentalOffer.monthlyRent.eq(filter.getMonthlyRent()) : null,
                 filter.getDeposit() != null ? rentalOffer.deposit.eq(filter.getDeposit()) : null,
                 filter.getUtilitiesCost() != null ? rentalOffer.utilitiesCost.eq(filter.getUtilitiesCost()) : null,
