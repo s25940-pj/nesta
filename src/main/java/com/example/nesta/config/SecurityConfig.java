@@ -28,7 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/register").permitAll()
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/rental-offers").permitAll()
-                        .requestMatchers("/api/rental-offers/search/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/rental-offers/search/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

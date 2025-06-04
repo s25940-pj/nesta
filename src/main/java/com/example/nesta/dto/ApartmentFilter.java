@@ -5,6 +5,8 @@ import lombok.Data;
 
 @Data
 public class ApartmentFilter {
+    private String landlordId;
+    private Integer area;
     private Integer numberOfRooms;
     private Integer numberOfBathrooms;
     private Integer floor;
@@ -14,4 +16,10 @@ public class ApartmentFilter {
     private Boolean hasElevator;
     private Boolean isDisabledAccessible;
     private Boolean hasStorageRoomInBasement;
+    private String streetName;
+    private String buildingNumber;
+    private String apartmentNumber;
+    private String city;
+    private String postalCode;
+    private String country;
 }

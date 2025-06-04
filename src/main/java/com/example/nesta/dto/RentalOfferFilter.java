@@ -11,6 +11,7 @@ import java.time.LocalDate;
 
 @Data
 public class RentalOfferFilter {
+    private String landlordId;
     private ApartmentFilter apartment;
     private BigDecimal monthlyRent;
     private BigDecimal deposit;
