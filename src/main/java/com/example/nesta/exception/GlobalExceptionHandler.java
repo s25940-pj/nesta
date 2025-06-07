@@ -2,6 +2,7 @@ package com.example.nesta.exception;
 
 import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressException;
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
+import com.example.nesta.exception.common.ResourceAlreadyExistsException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
 import com.example.nesta.exception.user.UserCreationException;
 import org.springframework.http.HttpStatus;
@@ -100,8 +101,8 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(ApartmentAlreadyExistsForAddressException.class)
-    public ResponseEntity<Map<String, Object>> handleApartmentAlreadyExistsForAddressException(ApartmentAlreadyExistsForAddressException ex) {
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceAlreadyExistsException(ApartmentAlreadyExistsForAddressException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 Map.of(
                         "timestamp", LocalDateTime.now(),

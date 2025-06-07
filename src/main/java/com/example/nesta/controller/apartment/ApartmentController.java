@@ -1,5 +1,6 @@
 package com.example.nesta.controller.apartment;
 
+import com.example.nesta.controller.AbstractSearchController;
 import com.example.nesta.dto.ApartmentFilter;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.service.apartment.ApartmentService;
@@ -19,10 +20,14 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/apartments")
-public class ApartmentController {
+public class ApartmentController extends AbstractSearchController {
     private final ApartmentService apartmentService;
 
+    private final static Set<String> ALLOWED_QUERY_PARAMS =
+            Arrays.stream(ApartmentFilter.class.getDeclaredFields()).map(Field::getName).collect(Collectors.toSet());
+
     public ApartmentController(ApartmentService apartmentService) {
+        super(ALLOWED_QUERY_PARAMS);
         this.apartmentService = apartmentService;
     }
 
@@ -42,8 +47,8 @@ public class ApartmentController {
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping
-    public ResponseEntity<List<Apartment>> getAllApartments(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(apartmentService.getAllApartments(jwt));
+    public ResponseEntity<List<Apartment>> getAllApartmentsByLandlordId(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(apartmentService.getAllApartmentsByLandlordId(jwt));
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
@@ -59,6 +64,7 @@ public class ApartmentController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/search")
     public ResponseEntity<List<Apartment>> searchApartments(@ModelAttribute ApartmentFilter filter, @RequestParam Map<String, String> allParams) {
         Set<String> allowedParams = Arrays.stream(ApartmentFilter.class.getDeclaredFields())

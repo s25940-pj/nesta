@@ -1,9 +1,11 @@
 package com.example.nesta.service.rentaloffer;
 
 import com.example.nesta.dto.RentalOfferFilter;
+import com.example.nesta.exception.rentaloffer.RentalOfferAlreadyExists;
 import com.example.nesta.exception.rentaloffer.RentalOfferNotFoundException;
 import com.example.nesta.model.RentalOffer;
 import com.example.nesta.repository.rentaloffer.RentalOfferRepository;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +20,17 @@ public class RentalOfferService {
         this.rentalOfferRepository = rentalOfferRepository;
     }
 
-    public RentalOffer createRentalOffer(RentalOffer rentalOffer) {
+    public RentalOffer createRentalOffer(RentalOffer rentalOffer, Jwt jwt) {
+        var apartmentId = rentalOffer.getApartment().getId();
+        var rentalOfferAlreadyExists = rentalOfferRepository.findByApartmentId(apartmentId).isPresent();
+
+        if  (rentalOfferAlreadyExists) {
+            throw new RentalOfferAlreadyExists(apartmentId);
+        }
+
+        String landlordId = jwt.getSubject();
+        rentalOffer.setLandlordId(landlordId);
+
         return rentalOfferRepository.save(rentalOffer);
     }
 

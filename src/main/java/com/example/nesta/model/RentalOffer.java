@@ -33,7 +33,7 @@ public class RentalOffer {
     @JoinColumn(name = "apartment_id", nullable = false)
     private Apartment apartment;
 
-    @OneToMany(mappedBy = "rental_offer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "rentalOffer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<RentalInvoice> rentalInvoices;
 
     /**

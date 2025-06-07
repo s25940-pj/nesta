@@ -7,6 +7,9 @@ import com.example.nesta.model.RentalOffer;
 import com.example.nesta.service.rentaloffer.RentalOfferService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Field;
@@ -29,9 +32,10 @@ public class RentalOfferController extends AbstractSearchController {
         this.rentalOfferService = rentalOfferService;
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PostMapping
-    public ResponseEntity<RentalOffer> createRentalOffer(@RequestBody @Valid RentalOffer rentalOffer) {
-        return ResponseEntity.ok(rentalOfferService.createRentalOffer(rentalOffer));
+    public ResponseEntity<RentalOffer> createRentalOffer(@RequestBody @Valid RentalOffer rentalOffer, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(rentalOfferService.createRentalOffer(rentalOffer, jwt));
     }
 
     @GetMapping("/{id}")
@@ -46,11 +50,13 @@ public class RentalOfferController extends AbstractSearchController {
         return ResponseEntity.ok(rentalOfferService.getAllRentalOffers());
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PutMapping("/{id}")
     public ResponseEntity<RentalOffer> updateRentalOffer(@PathVariable Long id, @RequestBody @Valid RentalOffer rentalOffer) {
         return ResponseEntity.ok(rentalOfferService.updateRentalOffer(id, rentalOffer));
     }
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRentalOffer(@PathVariable Long id) {
         rentalOfferService.deleteRentalOffer(id);

@@ -11,7 +11,7 @@ public class KeycloakAdminConfig {
     @Bean
     public Keycloak keycloak() {
         return KeycloakBuilder.builder()
-                .serverUrl("http://keycloak:8080")
+                .serverUrl("http://localhost:8080")
                 .realm("master")
                 .username("admin")
                 .password("admin")

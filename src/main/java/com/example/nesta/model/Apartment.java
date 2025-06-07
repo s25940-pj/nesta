@@ -18,9 +18,6 @@ public class Apartment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(mappedBy = "apartment")
-    private RentalOffer rentalOffer;
-
     @Column(name = "landlord_id", nullable = false)
     private String landlordId;
 
