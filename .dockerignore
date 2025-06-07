@@ -1,0 +1,20 @@
+# Ignore build output
+target/
+
+# Ignore version control
+.git
+.gitignore
+
+# Ignore IDE/project files
+*.iml
+.idea/
+.vscode/
+
+# Ignore OS/system files
+.DS_Store
+Thumbs.db
+
+# Ignore test reports or temp files
+*.log
+*.tmp
+*.swp
