@@ -31,7 +31,7 @@ public class ApartmentQueryRepositoryImpl implements ApartmentQueryRepository {
 
         return queryFactory
                 .selectFrom(apartment)
-                .where()
+                .where(apartmentPredicates)
                 .fetch();
     }
 }

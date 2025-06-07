@@ -67,15 +67,7 @@ public class ApartmentController extends AbstractSearchController {
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/search")
     public ResponseEntity<List<Apartment>> searchApartments(@ModelAttribute ApartmentFilter filter, @RequestParam Map<String, String> allParams) {
-        Set<String> allowedParams = Arrays.stream(ApartmentFilter.class.getDeclaredFields())
-                .map(Field::getName)
-                .collect(Collectors.toSet());
-
-        for (String param : allParams.keySet()) {
-            if (!allowedParams.contains(param)) {
-                return ResponseEntity.badRequest().build();
-            }
-        }
+        validateRequestParams(allParams, allowedQueryParams);
 
         return ResponseEntity.ok(apartmentService.searchApartments(filter));
     }
