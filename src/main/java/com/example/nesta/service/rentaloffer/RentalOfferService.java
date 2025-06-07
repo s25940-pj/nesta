@@ -1,10 +1,13 @@
 package com.example.nesta.service.rentaloffer;
 
 import com.example.nesta.dto.RentalOfferFilter;
+import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.exception.rentaloffer.RentalOfferAlreadyExists;
 import com.example.nesta.exception.rentaloffer.RentalOfferNotFoundException;
 import com.example.nesta.model.RentalOffer;
 import com.example.nesta.repository.rentaloffer.RentalOfferRepository;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +34,13 @@ public class RentalOfferService {
         String landlordId = jwt.getSubject();
         rentalOffer.setLandlordId(landlordId);
 
-        return rentalOfferRepository.save(rentalOffer);
+        try {
+            return rentalOfferRepository.save(rentalOffer);
+        }
+        catch (DataIntegrityViolationException e) {
+            // Thrown when the referenced apartment doesn't exist
+            throw new ApartmentNotFoundException(rentalOffer.getApartment().getId());
+        }
     }
 
     public Optional<RentalOffer> getRentalOfferById(Long id) { return rentalOfferRepository.findById(id); }
@@ -39,12 +48,19 @@ public class RentalOfferService {
     public List<RentalOffer> getAllRentalOffers() { return rentalOfferRepository.findAll(); }
 
     public RentalOffer updateRentalOffer(Long id, RentalOffer updatedRentalOffer) {
-        return rentalOfferRepository.findById(id)
-                .map(existing -> {
-                    updatedRentalOffer.setId(id);
-                    return rentalOfferRepository.save(updatedRentalOffer);
-                })
-                .orElseThrow(() -> new RentalOfferNotFoundException(id));
+        try {
+            return rentalOfferRepository.findById(id)
+                    .map(existing -> {
+                        updatedRentalOffer.setId(existing.getId());
+                        updatedRentalOffer.setLandlordId(existing.getLandlordId());
+                        return rentalOfferRepository.save(updatedRentalOffer);
+                    })
+                    .orElseThrow(() -> new RentalOfferNotFoundException(id));
+        }
+        catch (JpaObjectRetrievalFailureException e) {
+            // Thrown when the referenced apartment doesn't exist
+            throw new ApartmentNotFoundException(updatedRentalOffer.getApartment().getId());
+        }
     }
 
     public void deleteRentalOffer(Long id) {

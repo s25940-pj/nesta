@@ -1,7 +1,5 @@
 package com.example.nesta.exception;
 
-import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressException;
-import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.exception.common.ResourceAlreadyExistsException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
 import com.example.nesta.exception.user.UserCreationException;
@@ -17,7 +15,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ApartmentNotFoundException ex) {
+    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 Map.of(
                         "timestamp", LocalDateTime.now(),
@@ -102,7 +100,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceAlreadyExistsException(ApartmentAlreadyExistsForAddressException ex) {
+    public ResponseEntity<Map<String, Object>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 Map.of(
                         "timestamp", LocalDateTime.now(),
