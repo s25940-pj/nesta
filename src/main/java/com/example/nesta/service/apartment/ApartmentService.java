@@ -53,7 +53,8 @@ public class ApartmentService {
     public Apartment updateApartment(Long id, Apartment updatedApartment) {
         return apartmentRepository.findById(id)
                 .map(existing -> {
-                    updatedApartment.setId(id);
+                    updatedApartment.setId(existing.getId());
+                    updatedApartment.setLandlordId(existing.getLandlordId());
                     return apartmentRepository.save(updatedApartment);
                 })
                 .orElseThrow(() -> new ApartmentNotFoundException(id));
