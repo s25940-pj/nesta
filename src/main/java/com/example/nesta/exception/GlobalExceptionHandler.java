@@ -3,6 +3,7 @@ package com.example.nesta.exception;
 import com.example.nesta.exception.common.ResourceAlreadyExistsException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
 import com.example.nesta.exception.user.UserCreationException;
+import com.example.nesta.exception.user.UserLoginException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,18 +15,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                Map.of(
-                        "timestamp", LocalDateTime.now(),
-                        "status", 404,
-                        "error", "Not Found",
-                        "message", ex.getMessage()
-                )
-        );
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
@@ -33,6 +22,18 @@ public class GlobalExceptionHandler {
                         "timestamp", LocalDateTime.now(),
                         "status", 500,
                         "error", "Internal Server Error",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 404,
+                        "error", "Not Found",
                         "message", ex.getMessage()
                 )
         );
@@ -117,7 +118,19 @@ public class GlobalExceptionHandler {
                 Map.of(
                         "timestamp", LocalDateTime.now(),
                         "status", 500,
-                        "error", "Internal Server Error",
+                        "error", "User Creation Error",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(UserLoginException.class)
+    public ResponseEntity<Map<String, Object>> handleUserLoginException(UserLoginException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 500,
+                        "error", "User Login Error",
                         "message", ex.getMessage()
                 )
         );
