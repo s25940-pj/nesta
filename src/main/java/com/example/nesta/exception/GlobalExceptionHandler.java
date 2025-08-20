@@ -2,6 +2,10 @@ package com.example.nesta.exception;
 
 import com.example.nesta.exception.common.ResourceAlreadyExistsException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
+import com.example.nesta.exception.moveinapplication.ActiveApplicationAlreadyExistsException;
+import com.example.nesta.exception.moveinapplication.MoveInApplicationAlreadyClosedException;
+import com.example.nesta.exception.moveinapplication.ViewingDateNotAvailableException;
+import com.example.nesta.exception.moveinapplication.ViewingDateUnchangedException;
 import com.example.nesta.exception.user.UserCreationException;
 import com.example.nesta.exception.user.UserLoginException;
 import org.springframework.http.HttpStatus;
@@ -131,6 +135,54 @@ public class GlobalExceptionHandler {
                         "timestamp", LocalDateTime.now(),
                         "status", 500,
                         "error", "User Login Error",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(ViewingDateNotAvailableException.class)
+    public ResponseEntity<Map<String, Object>> handleViewingDateNotAvailable(ViewingDateNotAvailableException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 409,
+                        "error", "Conflict",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(ActiveApplicationAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleActiveApplicationAlreadyExists(ActiveApplicationAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 409,
+                        "error", "Conflict",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(ViewingDateUnchangedException.class)
+    public ResponseEntity<Map<String, Object>> handleViewingDateUnchanged(ViewingDateUnchangedException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of("timestamp", LocalDateTime.now(),
+                        "status", 400,
+                        "error", "Bad Request",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(MoveInApplicationAlreadyClosedException.class)
+    public ResponseEntity<Map<String, Object>> handleMoveInApplicationAlreadyClosedException(
+            MoveInApplicationAlreadyClosedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 409,
+                        "error", "Conflict",
                         "message", ex.getMessage()
                 )
         );

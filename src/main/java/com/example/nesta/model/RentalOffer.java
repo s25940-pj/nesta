@@ -13,8 +13,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
@@ -32,6 +31,10 @@ public class RentalOffer {
     @OneToOne
     @JoinColumn(name = "apartment_id", nullable = false)
     private Apartment apartment;
+
+    @OneToMany(mappedBy = "rentalOffer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<MoveInApplication> moveInApplications;
+
 
     @OneToMany(mappedBy = "rentalOffer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<RentalInvoice> rentalInvoices;
