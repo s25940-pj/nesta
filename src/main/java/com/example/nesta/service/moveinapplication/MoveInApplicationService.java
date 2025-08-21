@@ -2,16 +2,19 @@ package com.example.nesta.service.moveinapplication;
 
 import com.example.nesta.dto.moveinapplication.DecisionRequest;
 import com.example.nesta.dto.moveinapplication.RescheduleRequest;
+import com.example.nesta.exception.common.InvalidReferenceException;
+import com.example.nesta.exception.common.InvalidRoleException;
 import com.example.nesta.exception.moveinapplication.*;
 import com.example.nesta.model.MoveInApplication;
 import com.example.nesta.model.enums.MoveInApplicationStatus;
 import com.example.nesta.repository.moveinapplication.MoveInApplicationRepository;
+import com.example.nesta.utils.JwtUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class MoveInApplicationService {
@@ -25,26 +28,36 @@ public class MoveInApplicationService {
     }
 
     public MoveInApplication create(MoveInApplication moveInApplication, Jwt jwt) {
-        var rentalOfferId = moveInApplication.getRentalOffer().getId();
-        var viewingDateTime = moveInApplication.getViewingDateTime();
+        long rentalOfferId = 0;
 
-        validateViewingDateIsAvailable(rentalOfferId, viewingDateTime);
-        validateViewingDateInFuture(viewingDateTime);
+        try {
+            rentalOfferId = moveInApplication.getRentalOffer().getId();
+            var viewingDateTime = moveInApplication.getViewingDateTime();
 
-        String rentierId = jwt.getSubject();
-        boolean rentierAlreadyHasActiveApplication = moveInApplicationRepository.existsByRentalOffer_IdAndRentierIdAndStatusIn(
-                rentalOfferId, rentierId, BLOCKING_STATUSES);
+            validateViewingDateIsAvailable(rentalOfferId, viewingDateTime, jwt);
+            validateViewingDateInFuture(viewingDateTime);
 
-        if  (rentierAlreadyHasActiveApplication) {
-            throw new ActiveApplicationAlreadyExistsException("You already have an active application for this offer.");
+            String rentierId = jwt.getSubject();
+            boolean rentierAlreadyHasActiveApplicationForThisOffer = moveInApplicationRepository.existsByRentalOffer_IdAndRentierIdAndRentierStatusIn(
+                    rentalOfferId, rentierId, BLOCKING_STATUSES);
+
+            if (rentierAlreadyHasActiveApplicationForThisOffer) {
+                throw new ActiveApplicationAlreadyExistsException();
+            }
+
+            moveInApplication.setRentierId(rentierId);
+
+            return moveInApplicationRepository.save(moveInApplication);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage().contains("Key (rental_offer_id)=(" + rentalOfferId + ") is not present in table \"rental_offer\"")) {
+                throw new InvalidReferenceException("Rental offer with id" + rentalOfferId + "does not exist.");
+            }
+
+            throw e;
         }
-
-        moveInApplication.setRentierId(rentierId);
-
-        return  moveInApplicationRepository.save(moveInApplication);
     }
 
-    public void rescheduleViewing(Long id, RescheduleRequest request) {
+    public void rescheduleViewing(Long id, RescheduleRequest request, Jwt jwt) {
         var moveInApplication = moveInApplicationRepository.findById(id)
                 .orElseThrow(() -> new MoveInApplicationNotFoundException(id));
 
@@ -54,17 +67,17 @@ public class MoveInApplicationService {
         var updatedViewingDateTime = request.updatedViewingDateTime();
 
         if (request.updatedViewingDateTime().equals(moveInApplication.getViewingDateTime())) {
-            throw new ViewingDateUnchangedException("New viewing date must be different from the current one.");
+            throw new ViewingDateUnchangedException();
         }
 
-        validateViewingDateIsAvailable(rentalOfferId, updatedViewingDateTime);
+        validateViewingDateIsAvailable(rentalOfferId, updatedViewingDateTime, jwt);
         validateViewingDateInFuture(updatedViewingDateTime);
         moveInApplication.setViewingDateTime(updatedViewingDateTime);
         moveInApplicationRepository.save(moveInApplication);
     }
 
     private void ensureApplicationPending(MoveInApplication application) {
-        if (application.getLandlordStatus() != MoveInApplicationStatus.PENDING &&
+        if (application.getLandlordStatus() != MoveInApplicationStatus.PENDING ||
                 application.getRentierStatus() != MoveInApplicationStatus.PENDING) {
             throw new MoveInApplicationAlreadyClosedException(application.getId());
         }
@@ -76,8 +89,17 @@ public class MoveInApplicationService {
         }
     }
 
-    private void validateViewingDateIsAvailable(long rentalOfferId, LocalDateTime viewingDateTime) {
-        var taken = moveInApplicationRepository.existsByRentalOffer_IdAndViewingDateTimeAndStatusIn(rentalOfferId, viewingDateTime, BLOCKING_STATUSES);
+    private void validateViewingDateIsAvailable(long rentalOfferId, LocalDateTime viewingDateTime, Jwt jwt) {
+        var roles = JwtUtils.getRoles(jwt);
+        var taken = false;
+
+        if (roles.contains("LANDLORD")) {
+            taken = moveInApplicationRepository.existsByRentalOffer_IdAndViewingDateTimeAndLandlordStatusIn(rentalOfferId, viewingDateTime, BLOCKING_STATUSES);
+        } else if (roles.contains("RENTIER")) {
+            taken = moveInApplicationRepository.existsByRentalOffer_IdAndViewingDateTimeAndRentierStatusIn(rentalOfferId, viewingDateTime, BLOCKING_STATUSES);
+        } else {
+            throw new InvalidRoleException("Unknown role: access denied.");
+        }
 
         if (taken) {
             throw new ViewingDateNotAvailableException("The selected viewing date is already taken for this offer.");
@@ -95,7 +117,7 @@ public class MoveInApplicationService {
     }
 
     public void setDecision(Long id, DecisionRequest request, Jwt jwt) {
-        List<String> roles = jwt.getClaimAsStringList("roles");
+        var roles = JwtUtils.getRoles(jwt);
 
         MoveInApplication application = moveInApplicationRepository.findById(id)
                 .orElseThrow(() -> new MoveInApplicationNotFoundException(id));
@@ -105,11 +127,18 @@ public class MoveInApplicationService {
             application.setLandlordStatus(request.status());
             application.setLandlordDecisionReason(request.reason());
         } else if (roles.contains("RENTIER")) {
+            validateLandlordHasLeftDecision(application); // nie w przypadku cancelled
             application.setRentierDecidedAt(LocalDateTime.now());
             application.setRentierStatus(request.status());
             application.setRentierDecisionReason(request.reason());
         }
 
         moveInApplicationRepository.save(application);
+    }
+
+    private void validateLandlordHasLeftDecision(MoveInApplication application) {
+        if (application.getLandlordStatus() != MoveInApplicationStatus.APPROVED) {
+            throw new LandlordDecisionRequiredException();
+        }
     }
 }

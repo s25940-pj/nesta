@@ -1,5 +1,7 @@
 package com.example.nesta.exception;
 
+import com.example.nesta.exception.common.InvalidReferenceException;
+import com.example.nesta.exception.common.InvalidRoleException;
 import com.example.nesta.exception.common.ResourceAlreadyExistsException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
 import com.example.nesta.exception.moveinapplication.ActiveApplicationAlreadyExistsException;
@@ -183,6 +185,47 @@ public class GlobalExceptionHandler {
                         "timestamp", LocalDateTime.now(),
                         "status", 409,
                         "error", "Conflict",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    /**
+     * Handles errors when an entity references a non-existing resource.
+     * <p>
+     * This method is triggered when an {@link InvalidReferenceException} is thrown,
+     * which typically occurs when a client attempts to create or update an entity
+     * that contains a reference to another resource (e.g. rentalOfferId)
+     * that does not exist in the system.
+     * <p>
+     * Example use case:
+     * <ul>
+     *   <li>POST /api/move-in-applications with rentalOfferId=9999 (non-existing offer)</li>
+     *   <li>Creating a booking linked to an apartmentId that is not present in the database</li>
+     * </ul>
+     *
+     * @param ex the custom exception indicating an invalid resource reference
+     * @return a structured 400 Bad Request response containing error details
+     */
+    @ExceptionHandler(InvalidReferenceException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidReferenceException(InvalidReferenceException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 400,
+                        "error", "Bad Request",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(InvalidRoleException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidRoleException(InvalidRoleException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 403,
+                        "error", "Forbidden",
                         "message", ex.getMessage()
                 )
         );

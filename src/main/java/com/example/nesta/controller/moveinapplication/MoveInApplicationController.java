@@ -49,12 +49,13 @@ public class MoveInApplicationController {
         return moveInApplicationService.getMoveInApplicationsByLandlordId(landlordId);
     }
 
-    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).RENTIER)")
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).RENTIER) or hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PutMapping("/{id}/reschedule")
     public ResponseEntity<Void> rescheduleViewing(
             @PathVariable Long id,
-            @RequestBody @Valid RescheduleRequest rescheduleRequest) {
-        moveInApplicationService.rescheduleViewing(id, rescheduleRequest);
+            @RequestBody @Valid RescheduleRequest rescheduleRequest,
+            @AuthenticationPrincipal Jwt jwt) {
+        moveInApplicationService.rescheduleViewing(id, rescheduleRequest, jwt);
         return ResponseEntity.noContent().build();
     }
 
@@ -64,6 +65,4 @@ public class MoveInApplicationController {
         moveInApplicationService.setDecision(id, request, jwt);
         return ResponseEntity.noContent().build();
     }
-
-
 }

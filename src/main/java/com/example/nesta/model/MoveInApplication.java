@@ -2,11 +2,11 @@ package com.example.nesta.model;
 
 import com.example.nesta.model.enums.MoveInApplicationStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,9 @@ public class MoveInApplication {
     @Column(name = "rentier_id")
     private String rentierId;
 
+
     @Column(name = "viewing_datetime")
+    @NotNull
     private LocalDateTime viewingDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -43,14 +45,9 @@ public class MoveInApplication {
     @Column(length = 300)
     private String rentierDecisionReason;
 
-    private LocalDateTime leaseStartAt;
-
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     private LocalDateTime landlordDecidedAt;
     private LocalDateTime rentierDecidedAt;
