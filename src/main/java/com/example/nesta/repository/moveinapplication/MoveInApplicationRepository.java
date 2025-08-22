@@ -1,25 +1,33 @@
 package com.example.nesta.repository.moveinapplication;
 
 import com.example.nesta.model.MoveInApplication;
-import com.example.nesta.model.enums.MoveInApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 public interface MoveInApplicationRepository extends JpaRepository<MoveInApplication, Long> {
-    boolean existsByRentalOffer_IdAndViewingDateTimeAndLandlordStatusIn(
-            Long rentalOfferId,
-            LocalDateTime viewingDateTime,
-            Collection<MoveInApplicationStatus> statuses
+    @Query("""
+   SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
+   FROM MoveInApplication m
+   WHERE m.rentalOffer.id = :rentalOfferId
+     AND m.viewingDateTime = :dt
+     AND (m.rentierStatus = 'PENDING' OR m.landlordStatus = 'PENDING')
+   """)
+    boolean existsByOfferAndViewingDateTimeAndRentierOrLandlordPending(
+            @Param("rentalOfferId") Long rentalOfferId,
+            @Param("dt") LocalDateTime dt
     );
-    boolean existsByRentalOffer_IdAndViewingDateTimeAndRentierStatusIn(
-            Long rentalOfferId,
-            LocalDateTime viewingDateTime,
-            Collection<MoveInApplicationStatus> statuses
-    );
-    boolean existsByRentalOffer_IdAndRentierIdAndRentierStatusIn(Long rentalOfferId, String rentierId, Collection<MoveInApplicationStatus> statuses);
+    @Query("select case when count(a) > 0 then true else false end " +
+            "from MoveInApplication a " +
+            "where a.rentalOffer.id = :offerId " +
+            "and a.rentierId = :rentierId " +
+            "and a.rentierStatus = 'PENDING'")
+    boolean existsRentierPendingByRentalOfferAndRentierId(@Param("offerId") Long offerId,
+                                                          @Param("rentierId") String rentierId);
+
     List<MoveInApplication> findAllByRentierId(String rentierId);
     List<MoveInApplication> findAllByRentalOffer_LandlordId(String landlordId);
 }
