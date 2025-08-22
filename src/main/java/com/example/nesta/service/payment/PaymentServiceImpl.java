@@ -8,6 +8,7 @@ import com.example.nesta.payment.api.*;
 import com.example.nesta.payment.p24.client.P24Client;
 import com.example.nesta.payment.p24.config.P24Properties;
 import com.example.nesta.repository.payment.PaymentRepository;
+import com.example.nesta.repository.rentalinvoice.RentalInvoiceRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

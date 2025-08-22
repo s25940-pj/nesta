@@ -1,5 +1,6 @@
 package com.example.nesta.repository.payment.impl;
 
+
 import com.example.nesta.repository.payment.PaymentRepositoryQuery;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -10,6 +11,8 @@ import java.util.Objects;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 import lombok.RequiredArgsConstructor;
+
+import static com.example.nesta.model.QPayment.payment;
 
 @Repository
 @RequiredArgsConstructor
