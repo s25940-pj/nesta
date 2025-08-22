@@ -25,11 +25,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register").permitAll()
-                        .requestMatchers("/api/users/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/rental-offers").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/rental-offers/search/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/rental-offers",
+                                "/api/rental-offers/",
+                                "/api/rental-offers/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/rental-offers/search",
+                                "/api/rental-offers/search/" ,
+                                "/api/rental-offers/search/**"
+                        ).permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
