@@ -4,6 +4,8 @@ import com.example.nesta.model.enums.EmploymentStatus;
 import com.example.nesta.model.enums.FurnishingStatus;
 import com.example.nesta.model.enums.PetPolicy;
 import com.example.nesta.model.enums.SmokingPolicy;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -13,10 +15,15 @@ import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class RentalOffer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
