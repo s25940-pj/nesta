@@ -1,4 +1,4 @@
-package com.example.nesta.controller.apartment;
+package com.example.nesta.service;
 
 import com.example.nesta.dto.ApartmentFilter;
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
