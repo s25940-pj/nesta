@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/rental-offers/search/" ,
                                 "/api/rental-offers/search/**"
                         ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
