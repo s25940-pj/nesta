@@ -1,31 +1,29 @@
 package com.example.nesta.model;
 
 import com.example.nesta.model.enums.MoveInApplicationStatus;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 public class MoveInApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @JsonIdentityReference(alwaysAsId = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_offer_id", nullable = false)
     private RentalOffer rentalOffer;
 
     @Column(name = "rentier_id")
     private String rentierId;
-
 
     @Column(name = "viewing_datetime")
     @NotNull
