@@ -4,6 +4,7 @@ package com.example.nesta.repository.payment.impl;
 import com.example.nesta.repository.payment.PaymentRepositoryQuery;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.example.nesta.payment.api.PaymentListItemDto;
 import com.example.nesta.payment.api.PaymentQuery;
@@ -62,9 +63,9 @@ public class PaymentRepositoryImpl implements PaymentRepositoryQuery {
         var direction = sort.isAscending() ? com.querydsl.core.types.Order.ASC
                 : com.querydsl.core.types.Order.DESC;
         var orderBy = switch (sort.getProperty()) {
-            case "paidAt"    -> new com.querydsl.core.types.OrderSpecifier<>(direction, payment.paidAt);
-            case "amountCents" -> new com.querydsl.core.types.OrderSpecifier<>(direction, payment.amountCents);
-            default          -> new com.querydsl.core.types.OrderSpecifier<>(direction, payment.createdAt);
+            case "paidAt"    -> new OrderSpecifier<>(direction, payment.paidAt);
+            case "amountCents" -> new OrderSpecifier<>(direction, payment.amountCents);
+            default          -> new OrderSpecifier<>(direction, payment.createdAt);
         };
 
         var content = baseQuery

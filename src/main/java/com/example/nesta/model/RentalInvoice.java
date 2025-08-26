@@ -15,7 +15,8 @@ import java.time.Instant;
         @Index(name = "idx_invoice_paid", columnList = "paid")
 })
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,8 +31,11 @@ public class RentalInvoice {
     @JoinColumn(name = "rental_offer_id", nullable = false)
     private RentalOffer rentalOffer;
 
-    @Column(name = "user_id", length = 64)
-    private String userId;
+    @Column(name = "issuer_user_id", nullable = false)
+    private String issuerId;     // landlord
+
+    @Column(name = "receiver_user_id")
+    private String receiverId;     // rentier
 
     @Column(name = "number", length = 64)
     private String number;

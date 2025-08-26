@@ -2,9 +2,9 @@ package com.example.nesta.controller.payment;
 
 import com.example.nesta.payment.api.*;
 import com.example.nesta.service.payment.PaymentService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,10 +12,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
@@ -32,12 +30,11 @@ class PaymentController {
 
     // consider improvement?
     @PostMapping("/webhook/p24")
-    public ResponseEntity<Void> webhook(HttpServletRequest request) throws IOException {
-        String raw = request.getReader().lines().collect(Collectors.joining("\n"));
-        Map<String, String> headers = Collections.list(request.getHeaderNames())
-                .stream().collect(Collectors.toMap(h -> h, request::getHeader));
-        paymentService.handleP24Webhook(raw, headers);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> webhook(@RequestBody WebhookRequest req) throws IOException {
+        log.debug("======= WEBHOOK INITIALIZED =======");
+        log.debug(req.toString());
+        paymentService.handleP24Webhook(req);
+        return ResponseEntity.ok("OK");
     }
 
     @GetMapping("/{sessionId}")
@@ -46,8 +43,8 @@ class PaymentController {
         return paymentService.getBySession(sessionId, jwt.getSubject());
     }
 
-    @GetMapping
-    public Page<PaymentListItemDto> listMine(PaymentQuery q, @AuthenticationPrincipal Jwt jwt) {
+    @GetMapping("/list")
+    public Page<PaymentListItemDto> listMine(@ModelAttribute PaymentQuery q, @AuthenticationPrincipal Jwt jwt) {
         return paymentService.listMine(q, jwt.getSubject());
     }
 }

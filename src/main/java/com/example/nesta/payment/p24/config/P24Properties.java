@@ -1,7 +1,6 @@
 package com.example.nesta.payment.p24.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 @Validated

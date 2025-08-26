@@ -1,35 +1,50 @@
 package com.example.nesta.controller.rentalinvoice;
 
-import com.example.nesta.dto.rentalinvoice.RentalInvoiceCreateRequest;
-import com.example.nesta.model.RentalInvoice;
-import com.example.nesta.repository.rentalinvoice.RentalInvoiceRepository;
-import com.example.nesta.repository.rentaloffer.RentalOfferRepository;
+import com.example.nesta.dto.rentalinvoice.RentalInvoiceDto;
+import com.example.nesta.dto.rentalinvoice.RentalInvoiceListItemDto;
+import com.example.nesta.dto.rentalinvoice.RentalInvoiceQuery;
+import com.example.nesta.service.rentalinvoice.RentalInvoiceService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/invoices")
 @RequiredArgsConstructor
 public class RentalInvoiceController {
-    private final RentalInvoiceRepository invoiceRepo;
-    private final RentalOfferRepository offerRepo;
+    private final RentalInvoiceService rentalInvoiceService;
 
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PostMapping("/create")
-    public RentalInvoice create(@RequestBody RentalInvoiceCreateRequest req) {
-        var offer = offerRepo.findById(req.rentalOfferId())
-                .orElseThrow(() -> new IllegalArgumentException("Offer with id " + req.rentalOfferId() + " does not exist"));
+    public RentalInvoiceDto create(@RequestBody RentalInvoiceDto req, @AuthenticationPrincipal Jwt jwt) {
+        return rentalInvoiceService.create(req, jwt.getSubject());
+    }
 
-        var inv = new RentalInvoice();
-        inv.setRentalOffer(offer);
-        inv.setUserId(req.userId());
-        inv.setAmountCents(req.amountCents());
-        inv.setCurrency(req.currency() != null ? req.currency() : "PLN");
-        inv.setPaid(false);
-        inv.setNumber(null);
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
+    @PutMapping("{id}")
+    public RentalInvoiceDto update(
+            @PathVariable UUID id,
+            @RequestBody RentalInvoiceDto dto,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return rentalInvoiceService.update(id, dto, jwt.getSubject());
+    }
 
-        return invoiceRepo.save(inv);
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        rentalInvoiceService.delete(id, jwt.getSubject());
+    }
+
+    @GetMapping
+    public Page<RentalInvoiceListItemDto> listMine(@ModelAttribute RentalInvoiceQuery q, @AuthenticationPrincipal Jwt jwt) {
+        return rentalInvoiceService.listMine(q, jwt.getSubject());
     }
 }

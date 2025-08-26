@@ -22,7 +22,8 @@ import java.util.UUID;
         }
 )
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

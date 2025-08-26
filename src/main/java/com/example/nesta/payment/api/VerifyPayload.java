@@ -6,6 +6,6 @@ public record VerifyPayload(
         String sessionId,
         int amount,
         String currency,
-        int orderId,
+        long orderId,
         String sign
 ) {}

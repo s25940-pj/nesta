@@ -59,6 +59,9 @@ public class P24Client {
                 entity,
                 RegisterEnvelopeResponse.class
         );
+        if (resp != null) {
+            log.debug("REGISTER RESPONSE: data: " + resp.data);
+        }
         if (resp == null || resp.data() == null || resp.data().token() == null) {
             throw new IllegalStateException("P24 register failed: " + (resp == null ? "null" : resp.error()));
         }
@@ -91,6 +94,7 @@ public class P24Client {
         ).getBody();
 
         if (resp == null || resp.data() == null) {
+            log.debug("VERIFY RESPONSE: data: " + resp.data);
             throw new IllegalStateException("P24 verify failed: " + (resp == null ? "null" : resp.error()));
         }
         return resp.data();
@@ -98,14 +102,11 @@ public class P24Client {
 
     private String sha384Hex(String data) {
         try {
-            log.debug("CO DOSTAJE SHA ======///////////////");
             byte[] hash = MessageDigest.getInstance("SHA-384").digest(data.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 hexString.append(String.format("%02x", b));
             }
-            log.debug("////////////////====== co ODDAJE SHA");
-            log.debug(hexString.toString());
             return hexString.toString();
         } catch (Exception e) {
             throw new RuntimeException("SHA-384 failed", e);
@@ -126,7 +127,7 @@ public class P24Client {
             String urlStatus
     ) {}
 
-    public record RegisterResponse(String token, Long orderId) {}
+    public record RegisterResponse(String token) {}
     public record RegisterEnvelopeResponse(RegisterResponse data, String error) {}
 
     public record VerifyRequest(
@@ -135,10 +136,10 @@ public class P24Client {
             String sessionId,
             int amount,
             String currency,
-            int orderId
+            long orderId
     ) {}
 
-    public record VerifyResponse(boolean status) {}
+    public record VerifyResponse(String status) {}
     public record VerifyEnvelopeResponse(VerifyResponse data, String error) {}
 
     private HttpHeaders authHeaders() {
@@ -148,7 +149,7 @@ public class P24Client {
         return h;
     }
 
-    private static String createSignJson(String sessionId, String idKey, int idValue, int amount, String currency, String crc) throws Exception {
+    private static String createSignJson(String sessionId, String idKey, long idValue, int amount, String currency, String crc) throws Exception {
         ObjectNode n = MAPPER.createObjectNode();
         n.put("sessionId", sessionId);
         n.put(idKey, idValue);

@@ -9,7 +9,6 @@ import com.example.nesta.payment.p24.client.P24Client;
 import com.example.nesta.payment.p24.config.P24Properties;
 import com.example.nesta.repository.payment.PaymentRepository;
 import com.example.nesta.repository.rentalinvoice.RentalInvoiceRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -29,7 +27,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final RentalInvoiceRepository invoiceRepo;
     private final P24Client p24;
     private final P24Properties props;
-    private final ObjectMapper om;
 
     @Override
     @Transactional
@@ -42,6 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         // redirect if existing
         var existing = paymentRepo.findPendingByInvoiceId(invoice.getId());
+        log.debug("==== Redirecting because payment already exists ====");
         if (existing != null && existing.getP24Token() != null) {
             String cachedRedirect = props.redirectHost() + "/trnRequest/" + existing.getP24Token();
             return new CheckoutResponse(existing.getSessionId(), cachedRedirect);
@@ -87,7 +85,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         payment.setP24Token(registerResp.token());
-        payment.setP24OrderId(registerResp.orderId());
         paymentRepo.save(payment);
 
         String redirectUrl = props.redirectHost() + "/trnRequest/" + registerResp.token();
@@ -96,18 +93,13 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void handleP24Webhook(String rawBody, Map<String, String> headers) {
-        JsonNode node;
-        try { node = om.readTree(rawBody); }
-        catch (Exception e) { return; } // 200 if ok, 5xx if error
+    public void handleP24Webhook(WebhookRequest req) {
+        log.debug("SERVICE INIT HANDLE WEEBHOOK");
+        log.debug("DATA IS: " + req.toString());
 
-        JsonNode data = node.get("data");
-        if (data == null) return;
-
-        String sessionId = text(data, "sessionId");
-        Integer amount = intOrNull(data, "amount");
-        String currency = text(data, "currency");
-        Integer orderId = intOrNull(data, "orderId");
+        String sessionId = req.sessionId();
+        Integer amount = req.amount();
+        String currency = req.currency();
 
         if (sessionId == null || amount == null || currency == null) return;
 
@@ -117,37 +109,39 @@ public class PaymentServiceImpl implements PaymentService {
         // if paid already return
         if (payment.getStatus() == PaymentStatus.PAID) return;
 
-        // simple validation, if currency wrong, save notification but don't confirm
+        // simple validation, if currency or amount wrong, save notification but don't confirm
         if (payment.getAmountCents() != amount || !"PLN".equals(currency)) {
-            payment.setRawNotification(truncate(rawBody, 4000));
+            payment.setRawNotification("Currency/amount mismatch payment attempt :"
+                    + amount + "/" + currency);
             paymentRepo.save(payment);
             return;
         }
 
         // verify
         var verifyReq = new P24Client.VerifyRequest(
-                props.merchantId(),
-                props.posId(),
+                req.merchantId(),
+                req.posId(),
                 sessionId,
                 amount,
-                "PLN",
-                orderId
+                currency,
+                req.orderId()
         );
+
         P24Client.VerifyResponse verify;
         try {
+            log.debug("CALLING P24 CLIENT WITH VERIFY REQUEST");
             verify = p24.verify(verifyReq);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        if (verify.status()) {
+        if (verify.status().equals("success")) {
             payment.setStatus(PaymentStatus.PAID);
             payment.setVerificationStatus(VerificationStatus.VERIFIED);
             payment.setPaidAt(Instant.now());
-            payment.setRawNotification(truncate(rawBody, 4000));
+            payment.setRawNotification(truncate(req.toString(), 4000));
             paymentRepo.save(payment);
 
-            // TODO
             invoiceRepo.findById(payment.getInvoiceId()).ifPresent(inv -> {
                 inv.setPaid(true);
                 inv.setPaidAt(payment.getPaidAt());
@@ -157,7 +151,7 @@ public class PaymentServiceImpl implements PaymentService {
         } else {
             // save notification if failed, TODO retry payment?
             payment.setStatus(PaymentStatus.FAILED);
-            payment.setRawNotification(truncate(rawBody, 4000));
+            payment.setRawNotification(truncate(req.toString(), 4000));
             paymentRepo.save(payment);
         }
     }
@@ -190,14 +184,6 @@ public class PaymentServiceImpl implements PaymentService {
     private int calculateAmountCents(RentalInvoice inv) {
         // TODO, currency?
         return inv.getAmountCents();
-    }
-
-    private String text(JsonNode n, String field) {
-        return n.hasNonNull(field) ? n.get(field).asText() : null;
-    }
-
-    private Integer intOrNull(JsonNode n, String field) {
-        return n.hasNonNull(field) ? n.get(field).asInt() : null;
     }
 
     private String truncate(String s, int max) {
