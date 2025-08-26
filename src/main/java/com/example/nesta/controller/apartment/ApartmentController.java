@@ -86,4 +86,11 @@ public class ApartmentController extends AbstractSearchController {
             @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(apartmentImageService.uploadSingle(id, file, jwt));
     }
+
+    @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
+    @DeleteMapping("/{apartmentId}/images/{imageId}")
+    public ResponseEntity<Void> deleteApartmentImage(@PathVariable Long apartmentId, @PathVariable Long imageId, @AuthenticationPrincipal Jwt jwt) {
+        apartmentImageService.delete(apartmentId, imageId, jwt);
+        return ResponseEntity.noContent().build();
+    }
 }

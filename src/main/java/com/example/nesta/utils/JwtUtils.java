@@ -1,6 +1,8 @@
 package com.example.nesta.utils;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -11,5 +13,12 @@ public class JwtUtils {
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
         return new HashSet<>((Collection<String>) realmAccess.get("roles"));
+    }
+
+    public static void requireOwner(Jwt jwt, String id) {
+        var ownerId = jwt.getSubject();
+        if (!id.equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
     }
 }
