@@ -1,16 +1,25 @@
 package com.example.nesta.model;
 
 import com.example.nesta.model.enums.ParkingType;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.Set;
+
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
 public class Apartment {
 
     @Id
@@ -19,6 +28,9 @@ public class Apartment {
 
     @Column(name = "landlord_id", nullable = false)
     private String landlordId;
+
+    @OneToMany(mappedBy = "apartment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ApartmentImage> images = new java.util.LinkedHashSet<>();
 
     @NotNull
     private Integer area;
