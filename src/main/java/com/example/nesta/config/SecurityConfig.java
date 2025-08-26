@@ -37,6 +37,8 @@ public class SecurityConfig {
                                 "/api/rental-offers/search/" ,
                                 "/api/rental-offers/search/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
