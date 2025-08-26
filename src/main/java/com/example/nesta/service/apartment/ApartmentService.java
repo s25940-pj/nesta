@@ -55,6 +55,7 @@ public class ApartmentService {
                 .map(existing -> {
                     updatedApartment.setId(existing.getId());
                     updatedApartment.setLandlordId(existing.getLandlordId());
+                    updatedApartment.setImages(existing.getImages());
                     return apartmentRepository.save(updatedApartment);
                 })
                 .orElseThrow(() -> new ApartmentNotFoundException(id));

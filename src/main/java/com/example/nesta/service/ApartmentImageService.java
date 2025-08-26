@@ -1,9 +1,12 @@
 package com.example.nesta.service;
 
 import com.example.nesta.dto.ApartmentImageDto;
+import com.example.nesta.exception.ApartmentImageNotFoundException;
+import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.model.ApartmentImage;
 import com.example.nesta.repository.ApartmentImageRepository;
+import com.example.nesta.utils.JwtUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -52,8 +55,7 @@ public class ApartmentImageService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Apartment %d not found".formatted(apartmentId)));
 
-        String subject = getJwtSubjectOrThrow(jwt);
-        authorizeOwnerOrThrow(apartment, subject);
+        JwtUtils.requireOwner(jwt, apartment.getLandlordId());
 
         enforceApartmentImageLimit(apartmentId, 1);
 
@@ -109,12 +111,6 @@ public class ApartmentImageService {
         return Optional.ofNullable(jwt)
                 .map(Jwt::getSubject)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing JWT"));
-    }
-
-    private void authorizeOwnerOrThrow(Apartment apartment, String subject) {
-        if (!Objects.equals(subject, apartment.getLandlordId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your apartment");
-        }
     }
 
     private void enforceApartmentImageLimit(long apartmentId, int toAdd) {
@@ -188,5 +184,19 @@ public class ApartmentImageService {
                 ? publicBasePath.substring(0, publicBasePath.length() - 1)
                 : publicBasePath;
         return (base + "/" + relative).replace("\\", "/");
+    }
+
+    @Transactional
+    public void delete(Long apartmentId, Long imageId, Jwt jwt) {
+        var image = imageRepository.findByIdAndApartmentId(imageId, apartmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        JwtUtils.requireOwner(jwt, image.getApartment().getLandlordId());
+
+        var root = Path.of(storageRoot).toAbsolutePath().normalize();
+        var target = root.resolve(image.getRelativePath()).normalize();
+        try { Files.deleteIfExists(target); } catch (IOException ignored) {}
+
+        imageRepository.delete(image);
     }
 }
