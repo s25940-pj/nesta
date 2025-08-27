@@ -18,7 +18,7 @@ public class JwtUtils {
     public static void requireOwner(Jwt jwt, String id) {
         var ownerId = jwt.getSubject();
         if (!id.equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This user is not owner of this resource");
         }
     }
 }

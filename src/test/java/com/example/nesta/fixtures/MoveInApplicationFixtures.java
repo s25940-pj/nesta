@@ -18,7 +18,7 @@ public class MoveInApplicationFixtures {
         MoveInApplication moveInApplication = new MoveInApplication();
 
         moveInApplication.setRentalOffer(RentalOfferFixtures.rentalOffer(ApartmentFixtures.apartment()));
-
+        moveInApplication.setRentierId(fixture.create(String.class));
         moveInApplication.setViewingDateTime(LocalDateTime.now().plusDays(1));
         moveInApplication.setLandlordStatus(MoveInApplicationStatus.PENDING);
         moveInApplication.setRentierStatus(MoveInApplicationStatus.PENDING);

@@ -3,16 +3,20 @@ package com.example.nesta.service;
 import com.example.nesta.dto.ApartmentFilter;
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
+import com.example.nesta.model.enums.MoveInApplicationStatus;
 import com.example.nesta.repository.apartment.ApartmentRepository;
 import com.example.nesta.service.apartment.ApartmentService;
 import com.example.nesta.fixtures.ApartmentFixtures;
+import com.example.nesta.utils.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -71,79 +75,101 @@ public class ApartmentServiceTests {
     void getApartmentById_shouldReturnApartmentIfExists() {
         // given
         Apartment apartment = ApartmentFixtures.apartment();
+        Jwt jwt = mock(Jwt.class);
+
         when(apartmentRepository.findById(1L)).thenReturn(Optional.of(apartment));
 
-        // when
-        Optional<Apartment> result = apartmentService.getApartmentById(1L);
+        try (MockedStatic<JwtUtils> jwtUtils = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtils.when(() -> JwtUtils.requireOwner(jwt, apartment.getLandlordId())).thenAnswer(invocation -> null);
 
-        // then
-        assertTrue(result.isPresent());
-        assertEquals(apartment, result.get());
+            // when
+            var result = apartmentService.getApartmentById(1L, jwt);
+
+            // then
+            assertEquals(apartment, result);
+        }
     }
 
     @Test
-    void getApartmentById_shouldReturnEmptyIfNotExists() {
+    void getApartmentById_shouldThrowIfApartmentNotFound() {
         // given
+        Jwt jwt = mock(Jwt.class);
+
         when(apartmentRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // when
-        Optional<Apartment> result = apartmentService.getApartmentById(999L);
-
-        // then
-        assertTrue(result.isEmpty());
+        // when & then
+        assertThrows(ApartmentNotFoundException.class,
+                () -> apartmentService.getApartmentById(999L, jwt));
     }
 
     @Test
     void updateApartment_shouldUpdateAndReturnApartmentIfExists() {
         // given
+        Jwt jwt = mock(Jwt.class);
+
         Apartment existing = ApartmentFixtures.apartment();
         existing.setId(1L);
 
         Apartment updated = ApartmentFixtures.apartment();
-        updated.setNumberOfRooms(5); // simulate update
+        updated.setNumberOfRooms(5);
 
         when(apartmentRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(apartmentRepository.save(updated)).thenReturn(updated);
 
-        // when
-        Apartment result = apartmentService.updateApartment(1L, updated);
+        try (MockedStatic<JwtUtils> jwtUtils = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtils.when(() -> JwtUtils.requireOwner(jwt, existing.getLandlordId())).thenAnswer(invocation -> null);
 
-        // then
-        assertEquals(5, result.getNumberOfRooms());
-        verify(apartmentRepository).save(updated);
+            // when
+            Apartment result = apartmentService.updateApartment(1L, updated, jwt);
+
+            // then
+            assertEquals(5, result.getNumberOfRooms());
+            verify(apartmentRepository).save(updated);
+        }
     }
 
     @Test
     void updateApartment_shouldThrowIfApartmentNotFound() {
         // given
+        Jwt jwt = mock(Jwt.class);
         Apartment updated = ApartmentFixtures.apartment();
+
         when(apartmentRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(ApartmentNotFoundException.class,
-                () -> apartmentService.updateApartment(999L, updated));
+                () -> apartmentService.updateApartment(999L, updated, jwt));
     }
 
     @Test
     void deleteApartment_shouldDeleteIfExists() {
         // given
-        when(apartmentRepository.existsById(1L)).thenReturn(true);
+        Jwt jwt = mock(Jwt.class);
+        var apartment = ApartmentFixtures.apartment();
 
-        // when
-        apartmentService.deleteApartment(1L);
+        when(apartmentRepository.findById(1L)).thenReturn(Optional.of(apartment));
 
-        // then
-        verify(apartmentRepository).deleteById(1L);
+        try (MockedStatic<JwtUtils> jwtUtils = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtils.when(() -> JwtUtils.requireOwner(jwt, apartment.getLandlordId())).thenAnswer(invocation -> null);
+
+            // when
+            apartmentService.deleteApartment(1L, jwt);
+
+            // then
+            verify(apartmentRepository).deleteById(1L);
+        }
     }
 
     @Test
     void deleteApartment_shouldThrowIfNotExists() {
         // given
-        when(apartmentRepository.existsById(999L)).thenReturn(false);
+        Jwt jwt = mock(Jwt.class);
+
+        when(apartmentRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(ApartmentNotFoundException.class,
-                () -> apartmentService.deleteApartment(999L));
+                () -> apartmentService.deleteApartment(999L, jwt));
     }
 
     @Test
@@ -151,10 +177,12 @@ public class ApartmentServiceTests {
         // given
         ApartmentFilter filter = new ApartmentFilter();
         List<Apartment> expected = List.of(ApartmentFixtures.apartment());
+        Jwt jwt = mock(Jwt.class);
+
         when(apartmentRepository.searchApartments(filter)).thenReturn(expected);
 
         // when
-        List<Apartment> result = apartmentService.searchApartments(filter);
+        List<Apartment> result = apartmentService.searchApartments(filter, jwt);
 
         // then
         assertEquals(expected, result);

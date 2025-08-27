@@ -52,14 +52,14 @@ public class RentalOfferController extends AbstractSearchController {
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PutMapping("/{id}")
-    public ResponseEntity<RentalOffer> updateRentalOffer(@PathVariable Long id, @RequestBody @Valid RentalOffer rentalOffer) {
-        return ResponseEntity.ok(rentalOfferService.updateRentalOffer(id, rentalOffer));
+    public ResponseEntity<RentalOffer> updateRentalOffer(@PathVariable Long id, @RequestBody @Valid RentalOffer rentalOffer, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(rentalOfferService.updateRentalOffer(id, rentalOffer, jwt));
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRentalOffer(@PathVariable Long id) {
-        rentalOfferService.deleteRentalOffer(id);
+    public ResponseEntity<Void> deleteRentalOffer(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        rentalOfferService.deleteRentalOffer(id, jwt);
         return ResponseEntity.noContent().build();
     }
 
