@@ -1,38 +1,66 @@
 package com.example.nesta.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.util.Date;
+import java.util.UUID;
+import org.hibernate.annotations.UuidGenerator;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.time.Instant;
 
 @Entity
-@Data
+@Table(name = "rental_invoice", indexes = {
+        @Index(name = "idx_invoice_user_created", columnList = "user_id, created_at"),
+        @Index(name = "idx_invoice_paid", columnList = "paid")
+})
+@EntityListeners(AuditingEntityListener.class)
+@Getter @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Builder
 public class RentalInvoice {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @ManyToOne
+    @Id
+    @UuidGenerator
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_offer_id", nullable = false)
     private RentalOffer rentalOffer;
 
-    @Column(name = "rentier_id")
-    private String rentierId;
+    @Column(name = "issuer_user_id", nullable = false)
+    private String issuerId;     // landlord
 
-    @NotNull
-    private double amount;
+    @Column(name = "receiver_user_id")
+    private String receiverId;     // rentier
 
-    @NotNull
-    @Temporal(TemporalType.DATE)
-    private Date issueDate;
+    @Column(name = "number", length = 64)
+    private String number;
 
-    @NotNull
-    @Temporal(TemporalType.DATE)
-    private Date dueDate;
+    @Column(name = "amount_cents", nullable = false)
+    private int amountCents;
 
-    private boolean isPaid = false;
+    @Column(name = "currency", nullable = false, length = 3)
+    private String currency = "PLN";
+
+    @Column(name = "paid", nullable = false)
+    private boolean paid = false;
+
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
+    @Column(name = "payment_id")
+    private UUID paymentId;
+
+    /** Audit. */
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 }

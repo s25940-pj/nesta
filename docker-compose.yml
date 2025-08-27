@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   keycloak:
+    env_file: .env
     image: quay.io/keycloak/keycloak:26.0.1
     container_name: nesta-keycloak
     command:
@@ -12,23 +13,25 @@ services:
     volumes:
       - ./keycloak:/opt/keycloak/data/import
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: ${KC_ADMIN_LOGIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASS}
 
   postgres:
+    env_file: .env
     image: postgres:15
     container_name: nesta-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: nesta
-      POSTGRES_USER: nesta_admin
-      POSTGRES_PASSWORD: letmein
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
 
   app:
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile
