@@ -5,11 +5,11 @@ import com.example.nesta.exception.apartment.ApartmentAlreadyExistsForAddressExc
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
 import com.example.nesta.repository.apartment.ApartmentRepository;
+import com.example.nesta.utils.JwtUtils;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ApartmentService {
@@ -40,8 +40,12 @@ public class ApartmentService {
         ).isPresent();
     }
 
-    public Optional<Apartment> getApartmentById(Long apartmentId) {
-        return apartmentRepository.findById(apartmentId);
+    public Apartment getApartmentById(Long apartmentId, Jwt jwt) {
+        var apartment = apartmentRepository.findById(apartmentId).orElseThrow(() -> new ApartmentNotFoundException(apartmentId));
+
+        JwtUtils.requireOwner(jwt, apartment.getLandlordId());
+
+        return apartment;
     }
 
     public List<Apartment> getAllApartmentsByLandlordId(Jwt jwt) {
@@ -50,9 +54,11 @@ public class ApartmentService {
         return apartmentRepository.getAllApartmentsByLandlordId(landlordId);
     }
     
-    public Apartment updateApartment(Long id, Apartment updatedApartment) {
+    public Apartment updateApartment(Long id, Apartment updatedApartment, Jwt jwt) {
         return apartmentRepository.findById(id)
                 .map(existing -> {
+                    JwtUtils.requireOwner(jwt, existing.getLandlordId());
+
                     updatedApartment.setId(existing.getId());
                     updatedApartment.setLandlordId(existing.getLandlordId());
                     updatedApartment.setImages(existing.getImages());
@@ -61,14 +67,17 @@ public class ApartmentService {
                 .orElseThrow(() -> new ApartmentNotFoundException(id));
     }
 
-    public void deleteApartment(Long id) {
-        if (!apartmentRepository.existsById(id)) {
-            throw new ApartmentNotFoundException(id);
-        }
+    public void deleteApartment(Long id, Jwt jwt) {
+        var apartment = apartmentRepository.findById(id).orElseThrow(() -> new ApartmentNotFoundException(id));
+
+        JwtUtils.requireOwner(jwt, apartment.getLandlordId());
+
         apartmentRepository.deleteById(id);
     }
 
-    public List<Apartment> searchApartments(ApartmentFilter filter) {
+    public List<Apartment> searchApartments(ApartmentFilter filter, Jwt jwt) {
+        filter.setLandlordId(jwt.getSubject());
+
         return apartmentRepository.searchApartments(filter);
     }
 }

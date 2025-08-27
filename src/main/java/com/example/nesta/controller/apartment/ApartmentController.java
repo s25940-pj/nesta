@@ -45,10 +45,10 @@ public class ApartmentController extends AbstractSearchController {
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/{id}")
-    public ResponseEntity<Apartment> getApartmentById(@PathVariable Long id) {
-        return apartmentService.getApartmentById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Apartment> getApartmentById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        var apartment = apartmentService.getApartmentById(id, jwt);
+
+        return ResponseEntity.ok(apartment);
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
@@ -59,23 +59,23 @@ public class ApartmentController extends AbstractSearchController {
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @PutMapping("/{id}")
-    public ResponseEntity<Apartment> updateApartment(@PathVariable Long id, @RequestBody @Valid Apartment apartment) {
-        return ResponseEntity.ok(apartmentService.updateApartment(id, apartment));
+    public ResponseEntity<Apartment> updateApartment(@PathVariable Long id, @RequestBody @Valid Apartment apartment, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(apartmentService.updateApartment(id, apartment, jwt));
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteApartment(@PathVariable Long id) {
-        apartmentService.deleteApartment(id);
+    public ResponseEntity<Void> deleteApartment(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        apartmentService.deleteApartment(id, jwt);
         return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/search")
-    public ResponseEntity<List<Apartment>> searchApartments(@ModelAttribute ApartmentFilter filter, @RequestParam Map<String, String> allParams) {
+    public ResponseEntity<List<Apartment>> searchApartments(@ModelAttribute ApartmentFilter filter, @RequestParam Map<String, String> allParams, @AuthenticationPrincipal Jwt jwt) {
         validateRequestParams(allParams, allowedQueryParams);
 
-        return ResponseEntity.ok(apartmentService.searchApartments(filter));
+        return ResponseEntity.ok(apartmentService.searchApartments(filter, jwt));
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")

@@ -11,6 +11,7 @@ import com.example.nesta.utils.JwtUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -52,9 +53,11 @@ public class MoveInApplicationService {
         }
     }
 
-    public void rescheduleViewing(Long id, RescheduleRequest request) {
+    public void rescheduleViewing(Long id, RescheduleRequest request, Jwt jwt) {
         var moveInApplication = moveInApplicationRepository.findById(id)
                 .orElseThrow(() -> new MoveInApplicationNotFoundException(id));
+
+        JwtUtils.requireOwner(jwt, moveInApplication.getRentierId());
 
         if (moveInApplication.getLandlordStatus() != MoveInApplicationStatus.PENDING) {
             throw new ViewingRescheduleNotAllowedException();
@@ -87,37 +90,57 @@ public class MoveInApplicationService {
         }
     }
 
-    public Optional<MoveInApplication> getMoveInApplicationById(Long id) { return moveInApplicationRepository.findById(id); }
+    public MoveInApplication getMoveInApplicationById(Long id, Jwt jwt) {
+        var moveInApplication = moveInApplicationRepository.findById(id).orElseThrow(() -> new MoveInApplicationNotFoundException(id));
 
-    public List<MoveInApplication> getMoveInApplicationsByRentierId(String rentierId) {
+        try {
+            JwtUtils.requireOwner(jwt, moveInApplication.getRentierId());
+        } catch (ResponseStatusException ex) {
+            JwtUtils.requireOwner(jwt, moveInApplication.getRentalOffer().getLandlordId());
+        }
+
+        return moveInApplication;
+    }
+
+    public List<MoveInApplication> getMoveInApplicationsByRentierId(String rentierId, Jwt jwt) {
+        JwtUtils.requireOwner(jwt, rentierId);
+
         return moveInApplicationRepository.findAllByRentierId(rentierId);
     }
 
-    public List<MoveInApplication> getMoveInApplicationsByLandlordId(String landlordId) {
+    public List<MoveInApplication> getMoveInApplicationsByLandlordId(String landlordId, Jwt jwt) {
+        JwtUtils.requireOwner(jwt, landlordId);
+
         return moveInApplicationRepository.findAllByRentalOffer_LandlordId(landlordId);
     }
 
     public void setDecision(Long id, DecisionRequest request, Jwt jwt) {
-        MoveInApplication application = moveInApplicationRepository.findById(id)
+        MoveInApplication moveInApplication = moveInApplicationRepository.findById(id)
                 .orElseThrow(() -> new MoveInApplicationNotFoundException(id));
+
+        try {
+            JwtUtils.requireOwner(jwt, moveInApplication.getRentierId());
+        } catch (ResponseStatusException ex) {
+            JwtUtils.requireOwner(jwt, moveInApplication.getRentalOffer().getLandlordId());
+        }
 
         var roles = JwtUtils.getRoles(jwt);
 
         if (roles.contains("LANDLORD")) {
-            application.setLandlordDecidedAt(LocalDateTime.now());
-            application.setLandlordStatus(request.status());
-            application.setLandlordDecisionReason(request.reason());
+            moveInApplication.setLandlordDecidedAt(LocalDateTime.now());
+            moveInApplication.setLandlordStatus(request.status());
+            moveInApplication.setLandlordDecisionReason(request.reason());
         } else if (roles.contains("RENTIER")) {
             var rentierDecision = request.status();
 
-            if (rentierDecision != MoveInApplicationStatus.CANCELLED) validateLandlordHasLeftDecision(application);
+            if (rentierDecision != MoveInApplicationStatus.CANCELLED) validateLandlordHasLeftDecision(moveInApplication);
 
-            application.setRentierDecidedAt(LocalDateTime.now());
-            application.setRentierStatus(request.status());
-            application.setRentierDecisionReason(request.reason());
+            moveInApplication.setRentierDecidedAt(LocalDateTime.now());
+            moveInApplication.setRentierStatus(request.status());
+            moveInApplication.setRentierDecisionReason(request.reason());
         }
 
-        moveInApplicationRepository.save(application);
+        moveInApplicationRepository.save(moveInApplication);
     }
 
     private void validateLandlordHasLeftDecision(MoveInApplication application) {

@@ -136,11 +136,12 @@ public class MoveInApplicationServiceTests {
         var moveInApplicationId = 1L;
         var updatedViewingDateTime = LocalDateTime.of(2025, 1, 1, 1, 1, 1);
         var rescheduleRequest = new RescheduleRequest(updatedViewingDateTime);
+        var jwt = mock(Jwt.class);
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.empty());
 
         // when & then
-        var ex =  assertThrows(MoveInApplicationNotFoundException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest));
+        var ex =  assertThrows(MoveInApplicationNotFoundException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest, jwt));
         assertEquals(String.format("Move in application with id %d not found", moveInApplicationId), ex.getMessage());
     }
 
@@ -150,6 +151,7 @@ public class MoveInApplicationServiceTests {
         var moveInApplication = MoveInApplicationFixtures.pendingMoveInApplication();
         var updatedViewingDateTime = moveInApplication.getViewingDateTime().plusDays(1);
         var rescheduleRequest = new RescheduleRequest(updatedViewingDateTime);
+        var jwt = mock(Jwt.class);
 
         moveInApplication.setId(1L);
 
@@ -159,9 +161,13 @@ public class MoveInApplicationServiceTests {
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        // when & then
-        var ex =  assertThrows(ViewingRescheduleNotAllowedException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest));
-        assertEquals("Cannot reschedule viewing because landlord has already made a decision", ex.getMessage());
+        try (MockedStatic<JwtUtils> jwtUtils = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtils.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+
+            // when & then
+            var ex =  assertThrows(ViewingRescheduleNotAllowedException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest, jwt));
+            assertEquals("Cannot reschedule viewing because landlord has already made a decision", ex.getMessage());
+        }
     }
 
     @Test
@@ -169,6 +175,7 @@ public class MoveInApplicationServiceTests {
         // given
         var moveInApplication = MoveInApplicationFixtures.pendingMoveInApplication();
         var rescheduleRequest = new RescheduleRequest(moveInApplication.getViewingDateTime());
+        var  jwt = mock(Jwt.class);
 
         moveInApplication.setId(1L);
 
@@ -176,9 +183,14 @@ public class MoveInApplicationServiceTests {
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        // when & then
-        var ex =  assertThrows(ViewingDateUnchangedException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest));
-        assertEquals("New viewing date must be different from the current one", ex.getMessage());
+        try (MockedStatic<JwtUtils> jwtUtils = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtils.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+
+            // when & then
+            var ex =  assertThrows(ViewingDateUnchangedException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest, jwt));
+            assertEquals("New viewing date must be different from the current one", ex.getMessage());
+        }
+
     }
 
     @Test
@@ -187,6 +199,7 @@ public class MoveInApplicationServiceTests {
         var moveInApplication = MoveInApplicationFixtures.pendingMoveInApplication();
         var updatedViewingDateTime = moveInApplication.getViewingDateTime().plusDays(1);
         var rescheduleRequest = new RescheduleRequest(updatedViewingDateTime);
+        var jwt = mock(Jwt.class);
 
         moveInApplication.setId(1L);
 
@@ -195,9 +208,14 @@ public class MoveInApplicationServiceTests {
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
         when(repository.existsByOfferAndViewingDateTimeAndRentierOrLandlordPending(moveInApplication.getRentalOffer().getId(), rescheduleRequest.updatedViewingDateTime())).thenReturn(true);
 
-        // when & then
-        var ex =  assertThrows(ViewingDateNotAvailableException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest));
-        assertEquals("The selected viewing date is already reserved by another active move-in application", ex.getMessage());
+        try (MockedStatic<JwtUtils> jwtUtils = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtils.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+
+            // when & then
+            var ex =  assertThrows(ViewingDateNotAvailableException.class, () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest, jwt));
+            assertEquals("The selected viewing date is already reserved by another active move-in application", ex.getMessage());
+        }
+
     }
 
     @Test
@@ -208,16 +226,18 @@ public class MoveInApplicationServiceTests {
         var viewingDateTimeInPast = now.minusDays(1);
         var rescheduleRequest = new RescheduleRequest(viewingDateTimeInPast);
         var moveInApplicationId = moveInApplication.getId();
+        var jwt = mock(Jwt.class);
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        try (var mocked = Mockito.mockStatic(LocalDateTime.class)) {
-            mocked.when(LocalDateTime::now).thenReturn(now);
+        try (var jwtUtilsMockedStatic = Mockito.mockStatic(JwtUtils.class); var localDateTimeMockedStatic = Mockito.mockStatic(LocalDateTime.class)) {
+            jwtUtilsMockedStatic.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+            localDateTimeMockedStatic.when(LocalDateTime::now).thenReturn(now);
 
             // when & then
             var ex = assertThrows(
                     ViewingDateNotAvailableException.class,
-                    () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest)
+                    () -> service.rescheduleViewing(moveInApplicationId, rescheduleRequest, jwt)
             );
             assertEquals("Viewing date must be in the future", ex.getMessage());
         }
@@ -230,15 +250,23 @@ public class MoveInApplicationServiceTests {
         var updatedViewingDateTime = moveInApplication.getViewingDateTime().plusDays(1);
         var rescheduleRequest = new RescheduleRequest(updatedViewingDateTime);
         var moveInApplicationId = moveInApplication.getId();
+        var jwt =  mock(Jwt.class);
+        var now = updatedViewingDateTime.minusDays(1);
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        // when
-        service.rescheduleViewing(moveInApplicationId, rescheduleRequest);
+        try (var jwtUtilsMockedStatic = Mockito.mockStatic(JwtUtils.class); var localDateTimeMockedStatic = Mockito.mockStatic(LocalDateTime.class)) {
 
-        // then
-        assertEquals(updatedViewingDateTime, moveInApplication.getViewingDateTime());
-        verify(repository).save(moveInApplication);
+            jwtUtilsMockedStatic.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+            localDateTimeMockedStatic.when(LocalDateTime::now).thenReturn(now);
+
+            // when
+            service.rescheduleViewing(moveInApplicationId, rescheduleRequest, jwt);
+
+            // then
+            assertEquals(updatedViewingDateTime, moveInApplication.getViewingDateTime());
+            verify(repository).save(moveInApplication);
+        }
     }
 
     @Test
@@ -270,8 +298,9 @@ public class MoveInApplicationServiceTests {
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        try (MockedStatic<JwtUtils> roles = Mockito.mockStatic(JwtUtils.class)) {
-            roles.when(() -> JwtUtils.getRoles(jwt)).thenReturn(new HashSet<>(Set.of("LANDLORD")));
+        try (var jwtUtilsMockedStatic = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtilsMockedStatic.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+            jwtUtilsMockedStatic.when(() -> JwtUtils.getRoles(jwt)).thenReturn(new HashSet<>(Set.of("LANDLORD")));
 
             // when
             service.setDecision(moveInApplicationId, request, jwt);
@@ -300,13 +329,13 @@ public class MoveInApplicationServiceTests {
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        try (MockedStatic<JwtUtils> roles = Mockito.mockStatic(JwtUtils.class)) {
-            roles.when(() -> JwtUtils.getRoles(jwt)).thenReturn(new HashSet<>(Set.of("RENTIER")));
+        try (var jwtUtilsMockedStatic = Mockito.mockStatic(JwtUtils.class)) {
+            jwtUtilsMockedStatic.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+            jwtUtilsMockedStatic.when(() -> JwtUtils.getRoles(jwt)).thenReturn(new HashSet<>(Set.of("RENTIER")));
 
             // when & then
             var ex =  assertThrows(LandlordDecisionRequiredException.class, () -> service.setDecision(moveInApplicationId, request, jwt));
             assertEquals("Landlord must approve the application before this action can be performed", ex.getMessage());
-
         }
     }
 
@@ -324,8 +353,11 @@ public class MoveInApplicationServiceTests {
 
         when(repository.findById(moveInApplicationId)).thenReturn(Optional.of(moveInApplication));
 
-        try (MockedStatic<JwtUtils> roles = Mockito.mockStatic(JwtUtils.class)) {
-            roles.when(() -> JwtUtils.getRoles(jwt)).thenReturn(new HashSet<>(Set.of("RENTIER")));
+        try (var jwtUtilsMockedStatic = Mockito.mockStatic(JwtUtils.class)) {
+
+
+            jwtUtilsMockedStatic.when(() -> JwtUtils.requireOwner(jwt, moveInApplication.getRentierId())).thenAnswer(invocation -> null);
+            jwtUtilsMockedStatic.when(() -> JwtUtils.getRoles(jwt)).thenReturn(new HashSet<>(Set.of("RENTIER")));
 
             // when
             service.setDecision(moveInApplicationId, request, jwt);

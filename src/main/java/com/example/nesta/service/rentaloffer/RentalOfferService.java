@@ -6,6 +6,7 @@ import com.example.nesta.exception.rentaloffer.RentalOfferAlreadyExists;
 import com.example.nesta.exception.rentaloffer.RentalOfferNotFoundException;
 import com.example.nesta.model.RentalOffer;
 import com.example.nesta.repository.rentaloffer.RentalOfferRepository;
+import com.example.nesta.utils.JwtUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -47,10 +48,12 @@ public class RentalOfferService {
 
     public List<RentalOffer> getAllRentalOffers() { return rentalOfferRepository.findAll(); }
 
-    public RentalOffer updateRentalOffer(Long id, RentalOffer updatedRentalOffer) {
+    public RentalOffer updateRentalOffer(Long id, RentalOffer updatedRentalOffer, Jwt jwt) {
         try {
             return rentalOfferRepository.findById(id)
                     .map(existing -> {
+                        JwtUtils.requireOwner(jwt, existing.getLandlordId());
+
                         updatedRentalOffer.setId(existing.getId());
                         updatedRentalOffer.setLandlordId(existing.getLandlordId());
                         return rentalOfferRepository.save(updatedRentalOffer);
@@ -63,10 +66,11 @@ public class RentalOfferService {
         }
     }
 
-    public void deleteRentalOffer(Long id) {
-        if (!rentalOfferRepository.existsById(id)) {
-            throw new RentalOfferNotFoundException(id);
-        }
+    public void deleteRentalOffer(Long id, Jwt jwt) {
+        var rentalOffer = rentalOfferRepository.findById(id).orElseThrow(() -> new RentalOfferNotFoundException(id));
+
+        JwtUtils.requireOwner(jwt, rentalOffer.getLandlordId());
+
         rentalOfferRepository.deleteById(id);
     }
 

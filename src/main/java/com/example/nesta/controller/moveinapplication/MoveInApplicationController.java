@@ -31,30 +31,31 @@ public class MoveInApplicationController {
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).RENTIER) or hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/{id}")
-    public ResponseEntity<MoveInApplication> getMoveInApplicationById(@PathVariable Long id) {
-        return moveInApplicationService.getMoveInApplicationById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<MoveInApplication> getMoveInApplicationById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        var moveInApplication = moveInApplicationService.getMoveInApplicationById(id, jwt);
+
+        return ResponseEntity.ok(moveInApplication);
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).RENTIER)")
     @GetMapping("/by-rentier/{rentierId}")
-    public ResponseEntity<List<MoveInApplication>> getMoveInApplicationsByRentierId(@PathVariable String rentierId) {
-        return ResponseEntity.ok(moveInApplicationService.getMoveInApplicationsByRentierId(rentierId));
+    public ResponseEntity<List<MoveInApplication>> getMoveInApplicationsByRentierId(@PathVariable String rentierId, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(moveInApplicationService.getMoveInApplicationsByRentierId(rentierId, jwt));
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).LANDLORD)")
     @GetMapping("/by-landlord/{landlordId}")
-    public List<MoveInApplication> getMoveInApplicationsByLandlordId(@PathVariable String landlordId) {
-        return moveInApplicationService.getMoveInApplicationsByLandlordId(landlordId);
+    public List<MoveInApplication> getMoveInApplicationsByLandlordId(@PathVariable String landlordId,  @AuthenticationPrincipal Jwt jwt) {
+        return moveInApplicationService.getMoveInApplicationsByLandlordId(landlordId, jwt);
     }
 
     @PreAuthorize("hasRole(T(com.example.nesta.model.enums.UserRole).RENTIER)")
     @PutMapping("/{id}/reschedule")
     public ResponseEntity<Void> rescheduleViewing(
             @PathVariable Long id,
-            @RequestBody @Valid RescheduleRequest rescheduleRequest) {
-        moveInApplicationService.rescheduleViewing(id, rescheduleRequest);
+            @RequestBody @Valid RescheduleRequest rescheduleRequest,
+            @AuthenticationPrincipal Jwt jwt) {
+        moveInApplicationService.rescheduleViewing(id, rescheduleRequest, jwt);
         return ResponseEntity.noContent().build();
     }
 
