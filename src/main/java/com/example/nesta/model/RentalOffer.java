@@ -46,6 +46,9 @@ public class RentalOffer {
     @OneToMany(mappedBy = "rentalOffer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<RentalInvoice> rentalInvoices;
 
+    private String rentierId;
+    private boolean isListed = true;
+
     /**
      * Monthly rent amount (excluding additional utilities).
      */
