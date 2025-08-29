@@ -3,7 +3,6 @@ package com.example.nesta.service;
 import com.example.nesta.dto.ApartmentFilter;
 import com.example.nesta.exception.apartment.ApartmentNotFoundException;
 import com.example.nesta.model.Apartment;
-import com.example.nesta.model.enums.MoveInApplicationStatus;
 import com.example.nesta.repository.apartment.ApartmentRepository;
 import com.example.nesta.service.apartment.ApartmentService;
 import com.example.nesta.fixtures.ApartmentFixtures;
@@ -13,10 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

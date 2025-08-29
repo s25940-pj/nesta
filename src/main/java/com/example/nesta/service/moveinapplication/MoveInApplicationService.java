@@ -5,12 +5,15 @@ import com.example.nesta.dto.moveinapplication.RescheduleRequest;
 import com.example.nesta.exception.common.InvalidReferenceException;
 import com.example.nesta.exception.moveinapplication.*;
 import com.example.nesta.model.MoveInApplication;
+import com.example.nesta.model.RentalOffer;
 import com.example.nesta.model.enums.MoveInApplicationStatus;
 import com.example.nesta.repository.moveinapplication.MoveInApplicationRepository;
+import com.example.nesta.service.rentaloffer.RentalOfferService;
 import com.example.nesta.utils.JwtUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -19,9 +22,11 @@ import java.util.*;
 @Service
 public class MoveInApplicationService {
     private final MoveInApplicationRepository moveInApplicationRepository;
+    private final RentalOfferService rentalOfferService;
 
-    public MoveInApplicationService(MoveInApplicationRepository moveInApplicationRepository) {
+    public MoveInApplicationService(MoveInApplicationRepository moveInApplicationRepository, RentalOfferService rentalOfferService) {
         this.moveInApplicationRepository = moveInApplicationRepository;
+        this.rentalOfferService = rentalOfferService;
     }
 
     public MoveInApplication create(MoveInApplication moveInApplication, Jwt jwt) {
@@ -114,6 +119,7 @@ public class MoveInApplicationService {
         return moveInApplicationRepository.findAllByRentalOffer_LandlordId(landlordId);
     }
 
+    @Transactional
     public void setDecision(Long id, DecisionRequest request, Jwt jwt) {
         MoveInApplication moveInApplication = moveInApplicationRepository.findById(id)
                 .orElseThrow(() -> new MoveInApplicationNotFoundException(id));
@@ -134,6 +140,13 @@ public class MoveInApplicationService {
             var rentierDecision = request.status();
 
             if (rentierDecision != MoveInApplicationStatus.CANCELLED) validateLandlordHasLeftDecision(moveInApplication);
+            if (rentierDecision == MoveInApplicationStatus.APPROVED) {
+                 if (landlordHasApproved(moveInApplication)) {
+                     assignRentierToRentalOffer(moveInApplication.getRentierId(), moveInApplication.getRentalOffer(), jwt);
+                 } else {
+                    throw new LandlordNotApprovedException();
+                 }
+            }
 
             moveInApplication.setRentierDecidedAt(LocalDateTime.now());
             moveInApplication.setRentierStatus(request.status());
@@ -147,5 +160,16 @@ public class MoveInApplicationService {
         if (application.getLandlordStatus() != MoveInApplicationStatus.APPROVED) {
             throw new LandlordDecisionRequiredException();
         }
+    }
+
+    private boolean landlordHasApproved(MoveInApplication application) {
+        return application.getLandlordStatus() == MoveInApplicationStatus.APPROVED;
+    }
+
+    private void assignRentierToRentalOffer(String rentierId, RentalOffer rentalOffer, Jwt jwt) {
+        rentalOffer.setRentierId(rentierId);
+        rentalOffer.setListed(false);
+
+        rentalOfferService.updateRentalOffer(rentalOffer.getId(), rentalOffer, jwt, false);
     }
 }

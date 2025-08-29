@@ -4,10 +4,7 @@ import com.example.nesta.exception.common.InvalidReferenceException;
 import com.example.nesta.exception.common.InvalidRoleException;
 import com.example.nesta.exception.common.ResourceAlreadyExistsException;
 import com.example.nesta.exception.common.ResourceNotFoundException;
-import com.example.nesta.exception.moveinapplication.ActiveApplicationAlreadyExistsException;
-import com.example.nesta.exception.moveinapplication.ViewingDateNotAvailableException;
-import com.example.nesta.exception.moveinapplication.ViewingDateUnchangedException;
-import com.example.nesta.exception.moveinapplication.ViewingRescheduleNotAllowedException;
+import com.example.nesta.exception.moveinapplication.*;
 import com.example.nesta.exception.user.UserCreationException;
 import com.example.nesta.exception.user.UserLoginException;
 import org.springframework.http.HttpStatus;
@@ -229,4 +226,17 @@ public class GlobalExceptionHandler {
                 )
         );
     }
+
+    @ExceptionHandler(LandlordNotApprovedException.class)
+    public ResponseEntity<Map<String, Object>> handleLandlordNotApprovedException(LandlordNotApprovedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", 409,
+                        "error", "Conflict",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
 }

@@ -48,11 +48,11 @@ public class RentalOfferService {
 
     public List<RentalOffer> getAllRentalOffers() { return rentalOfferRepository.findAll(); }
 
-    public RentalOffer updateRentalOffer(Long id, RentalOffer updatedRentalOffer, Jwt jwt) {
+    public RentalOffer updateRentalOffer(Long id, RentalOffer updatedRentalOffer, Jwt jwt, boolean requireOwnerValidation) {
         try {
             return rentalOfferRepository.findById(id)
                     .map(existing -> {
-                        JwtUtils.requireOwner(jwt, existing.getLandlordId());
+                        if (requireOwnerValidation) JwtUtils.requireOwner(jwt, existing.getLandlordId());
 
                         updatedRentalOffer.setId(existing.getId());
                         updatedRentalOffer.setLandlordId(existing.getLandlordId());
