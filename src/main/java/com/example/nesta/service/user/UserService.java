@@ -135,6 +135,25 @@ public class UserService {
         }
     }
 
+    public void logoutUser(UserLogoutRequest request) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        Map<String, String> body = new HashMap<>();
+        body.put("client_id", "nesta-backend");
+        body.put("client_secret", "12345");
+        body.put("refresh_token", request.getRefreshToken());
+
+        HttpEntity<String> keycloakRequest = new HttpEntity<>(buildUrlEncodedBody(body), headers);
+
+        try {
+            restTemplate.postForEntity(logoutUrl, keycloakRequest, String.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Logout failed: " + e.getMessage());
+        }
+    }
+
     private String buildUrlEncodedBody(Map<String, String> data) {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, String> entry : data.entrySet()) {
