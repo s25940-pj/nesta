@@ -147,7 +147,7 @@ public class UserService {
         Map<String, String> body = new HashMap<>();
         body.put("client_id", "nesta-backend");
         body.put("client_secret", "12345");
-        body.put("refresh_token", request.getRefreshToken());
+        body.put("refresh_token", request.refreshToken());
 
         HttpEntity<String> keycloakRequest = new HttpEntity<>(buildUrlEncodedBody(body), headers);
 
