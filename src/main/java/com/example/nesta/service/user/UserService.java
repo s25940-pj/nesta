@@ -1,5 +1,6 @@
 package com.example.nesta.service.user;
 
+import com.example.nesta.dto.user.UserLogoutRequest;
 import com.example.nesta.dto.user.UserRegisterRequest;
 import com.example.nesta.exception.user.UserCreationException;
 import com.example.nesta.exception.user.UserLoginException;
@@ -30,6 +31,9 @@ public class UserService {
 
     @Value("${keycloak.token-url}")
     private String tokenUrl;
+
+    @Value("${keycloak.logout-url}")
+    private String logoutUrl;
 
     private final String realm = "nesta-realm";
 

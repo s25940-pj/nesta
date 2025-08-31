@@ -1,5 +1,6 @@
 package com.example.nesta.controller.user;
 
+import com.example.nesta.dto.user.UserLogoutRequest;
 import com.example.nesta.dto.user.UserRegisterRequest;
 import com.example.nesta.service.user.UserService;
 import lombok.RequiredArgsConstructor;
