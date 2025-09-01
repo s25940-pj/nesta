@@ -57,8 +57,6 @@ public class ApartmentImageService {
 
         JwtUtils.requireOwner(jwt, apartment.getLandlordId());
 
-        enforceApartmentImageLimit(apartmentId, 1);
-
         ApartmentImage saved = storeOne(apartment, file);
 
         return new ApartmentImageDto(
@@ -105,20 +103,6 @@ public class ApartmentImageService {
                 .build();
 
         return imageRepository.save(entity);
-    }
-
-    private String getJwtSubjectOrThrow(Jwt jwt) {
-        return Optional.ofNullable(jwt)
-                .map(Jwt::getSubject)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing JWT"));
-    }
-
-    private void enforceApartmentImageLimit(long apartmentId, int toAdd) {
-        int current = imageRepository.countByApartmentId(apartmentId);
-        if (current + toAdd > maxImagesPerApartment) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Too many images for this apartment (limit %d)".formatted(maxImagesPerApartment));
-        }
     }
 
     private void validateMimeOrThrow(String contentType) {
